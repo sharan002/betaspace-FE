@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\DS\\\\showdemocrmFE\" -Force)",
+      "Bash(Select-Object Name, Mode)",
+      "Bash(Get-ChildItem -Force)",
+      "Bash(Select-Object Name, FullName)",
+      "Bash(xargs basename -a)",
+      "Bash(npm install *)",
+      "Bash(npm list *)",
+      "Bash(git add *)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\DS\\\\showdemocrmFE\" -Recurse -Include \"*.tsx\",\"*.ts\",\"*.jsx\",\"*.js\" -Exclude \"node_modules\" -ErrorAction SilentlyContinue)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Get-ChildItem -Path \"d:\\\\Etherservices\\\\CRM-app-be\" -Recurse -Include \"*.ts\",\"*.js\" -Exclude \"node_modules\" -ErrorAction SilentlyContinue)"
+    ]
+  }
+}

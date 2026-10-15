@@ -1,0 +1,1707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Certificate Management</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --emerald: #059669;
+      --emerald-light: #d1fae5;
+      --emerald-dark: #047857;
+      --slate-50: #f8fafc;
+      --slate-100: #f1f5f9;
+      --slate-200: #e2e8f0;
+      --slate-400: #94a3b8;
+      --slate-500: #64748b;
+      --slate-700: #334155;
+      --slate-800: #1e293b;
+      --violet: #7c3aed;
+      --amber: #d97706;
+      --red: #dc2626;
+      --shadow: 0 1px 3px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,.1), 0 4px 6px -2px rgba(0,0,0,.05);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--slate-50);
+      color: var(--slate-800);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Login Screen ── */
+    #login-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background: linear-gradient(135deg, #ecfdf5, #f0fdf4);
+    }
+    .login-card {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      width: 380px;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--slate-200);
+    }
+    .login-card h1 {
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: var(--slate-800);
+      margin-bottom: 4px;
+    }
+    .login-card p { color: var(--slate-500); font-size: .875rem; margin-bottom: 28px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block;
+      font-size: .7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--slate-400);
+      margin-bottom: 6px;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid var(--slate-200);
+      border-radius: 12px;
+      font-size: .875rem;
+      color: var(--slate-700);
+      background: var(--slate-50);
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      border-color: var(--emerald);
+      box-shadow: 0 0 0 3px rgba(5,150,105,.12);
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-size: .8rem;
+      font-weight: 800;
+      cursor: pointer;
+      border: none;
+      transition: all .15s;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    .btn:active { transform: scale(.97); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+    .btn-emerald { background: var(--emerald); color: white; }
+    .btn-emerald:hover:not(:disabled) { background: var(--emerald-dark); }
+    .btn-outline { background: white; color: var(--slate-500); border: 1.5px solid var(--slate-200); }
+    .btn-outline:hover:not(:disabled) { background: var(--slate-50); }
+    .btn-violet { background: var(--violet); color: white; }
+    .btn-violet:hover:not(:disabled) { background: #6d28d9; }
+    .btn-danger { background: #fef2f2; color: var(--red); border: 1px solid #fecaca; }
+    .btn-danger:hover:not(:disabled) { background: #fee2e2; }
+    .btn-full { width: 100%; justify-content: center; }
+    .btn-sm { padding: 6px 12px; font-size: .72rem; border-radius: 8px; }
+    .btn-xs { padding: 4px 8px; font-size: .67rem; border-radius: 6px; }
+
+    /* ── App Shell ── */
+    #app { display: none; flex-direction: column; height: 100vh; }
+
+    /* Top bar */
+    .topbar {
+      background: white;
+      border-bottom: 1px solid var(--slate-200);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      box-shadow: var(--shadow);
+    }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .topbar h1 { font-size: 1.1rem; font-weight: 900; color: var(--slate-800); }
+    .topbar-badge {
+      font-size: .65rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      background: var(--emerald-light);
+      color: var(--emerald-dark);
+      padding: 3px 8px;
+      border-radius: 20px;
+      letter-spacing: .05em;
+    }
+    .topbar-right { display: flex; align-items: center; gap: 10px; }
+    #user-info { font-size: .8rem; color: var(--slate-500); font-weight: 600; }
+
+    /* Main layout */
+    .main-layout {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* Left panel */
+    .left-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: margin-right .3s;
+    }
+    .left-panel.panel-shifted { margin-right: 480px; }
+
+    /* Controls bar */
+    .controls-bar {
+      padding: 14px 20px 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid var(--slate-100);
+      background: white;
+      flex-shrink: 0;
+    }
+    .count-chip {
+      font-size: .7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--slate-400);
+      letter-spacing: .07em;
+    }
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 180px;
+      max-width: 260px;
+    }
+    .search-wrap svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--slate-400); }
+    .search-wrap input {
+      padding: 8px 12px 8px 32px;
+      border: 1.5px solid var(--slate-200);
+      border-radius: 10px;
+      font-size: .82rem;
+      outline: none;
+      width: 100%;
+      background: var(--slate-50);
+      transition: border-color .15s;
+    }
+    .search-wrap input:focus { border-color: var(--emerald); }
+
+    /* View toggle */
+    .view-toggle {
+      display: flex;
+      border: 1.5px solid var(--slate-200);
+      border-radius: 10px;
+      overflow: hidden;
+      background: white;
+    }
+    .view-toggle button {
+      padding: 7px 13px;
+      font-size: .72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--slate-500);
+      transition: all .15s;
+    }
+    .view-toggle button.active { background: var(--emerald); color: white; }
+
+    /* Table */
+    .table-container {
+      flex: 1;
+      overflow: auto;
+      padding: 0 20px 20px;
+    }
+    table { width: 100%; border-collapse: collapse; background: white; border-radius: 14px; overflow: hidden; border: 1px solid var(--slate-200); margin-top: 12px; box-shadow: var(--shadow); }
+    thead th {
+      padding: 12px 16px;
+      text-align: left;
+      font-size: .7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--slate-400);
+      background: var(--slate-50);
+      border-bottom: 1px solid var(--slate-100);
+    }
+    tbody tr {
+      cursor: pointer;
+      transition: background .1s;
+      border-bottom: 1px solid var(--slate-100);
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #f8fafc; }
+    tbody tr.selected { background: #ecfdf5; }
+    tbody td { padding: 12px 16px; font-size: .84rem; color: var(--slate-700); vertical-align: middle; }
+
+    .avatar {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      background: var(--emerald-light);
+      color: var(--emerald-dark);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: .85rem;
+      flex-shrink: 0;
+    }
+    .cell-name { display: flex; align-items: center; gap: 10px; }
+    .cell-name .info { display: flex; flex-direction: column; }
+    .cell-name .name { font-weight: 700; color: var(--slate-800); font-size: .85rem; }
+    .cell-name .sub { font-size: .7rem; color: var(--slate-400); margin-top: 1px; }
+
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 9px; border-radius: 20px;
+      font-size: .68rem; font-weight: 800;
+      text-transform: uppercase; letter-spacing: .04em;
+    }
+    .badge-leader { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+    .badge-batch {
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: box-shadow .15s;
+    }
+    .badge-batch:hover { box-shadow: 0 2px 6px rgba(0,0,0,.15); }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--slate-400);
+      font-size: .9rem;
+      font-style: italic;
+    }
+
+    /* Loading spinner */
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2.5px solid currentColor;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Batch groups */
+    .batch-group {
+      background: white;
+      border: 1px solid var(--slate-200);
+      border-radius: 14px;
+      margin: 12px 0 0;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    .batch-group-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      cursor: pointer;
+      background: var(--slate-50);
+      border-bottom: 1px solid var(--slate-100);
+      user-select: none;
+    }
+    .batch-group-header:hover { background: #f1f5f9; }
+    .batch-group-members { display: none; }
+    .batch-group-members.open { display: block; }
+    .batch-member {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--slate-50);
+      cursor: pointer;
+      transition: background .1s;
+    }
+    .batch-member:last-child { border-bottom: none; }
+    .batch-member:hover { background: #f8fafc; }
+    .batch-member.selected { background: #ecfdf5; }
+
+    /* Pagination */
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 16px;
+      background: white;
+      border-top: 1px solid var(--slate-100);
+      flex-shrink: 0;
+    }
+    .pagination button {
+      padding: 6px 12px;
+      border: 1.5px solid var(--slate-200);
+      border-radius: 8px;
+      font-size: .8rem;
+      font-weight: 700;
+      cursor: pointer;
+      background: white;
+      color: var(--slate-600);
+      transition: all .15s;
+    }
+    .pagination button:hover:not(:disabled) { background: var(--slate-50); border-color: var(--emerald); color: var(--emerald); }
+    .pagination button.active { background: var(--emerald); color: white; border-color: var(--emerald); }
+    .pagination button:disabled { opacity: .4; cursor: not-allowed; }
+
+    /* ── Right Panel ── */
+    .right-panel {
+      position: fixed;
+      top: 0; right: 0; bottom: 0;
+      width: 480px;
+      background: white;
+      border-left: 1px solid var(--slate-200);
+      box-shadow: -4px 0 20px rgba(0,0,0,.08);
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform .3s ease;
+      z-index: 30;
+    }
+    .right-panel.open { transform: translateX(0); }
+
+    .panel-header {
+      padding: 18px 18px 0;
+      background: var(--slate-50);
+      border-bottom: 1px solid var(--slate-100);
+      flex-shrink: 0;
+    }
+    .panel-student-info {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .panel-student-info .left { display: flex; align-items: center; gap: 12px; }
+    .panel-student-info .name { font-size: 1rem; font-weight: 900; color: var(--slate-800); }
+    .panel-student-info .meta { font-size: .75rem; color: var(--slate-500); margin-top: 2px; display: flex; align-items: center; gap: 6px; }
+    .wa-link { color: #25D366; cursor: pointer; display: flex; }
+    .wa-link:hover { color: #128C7E; }
+
+    /* Tabs */
+    .tabs-bar {
+      display: flex;
+      gap: 4px;
+      padding: 6px;
+      background: var(--slate-100);
+      border-radius: 12px;
+      margin-bottom: 14px;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 8px 4px;
+      font-size: .7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: transparent;
+      color: var(--slate-500);
+      transition: all .15s;
+    }
+    .tab-btn.active {
+      background: white;
+      color: var(--emerald);
+      box-shadow: 0 1px 3px rgba(0,0,0,.1);
+      border: 1px solid var(--slate-200);
+    }
+
+    .panel-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+    }
+
+    /* Certificate form */
+    .form-row { display: grid; gap: 12px; margin-bottom: 12px; }
+    .form-row.cols-2 { grid-template-columns: 1fr 1fr; }
+    .form-row.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .form-row.cols-13 { grid-template-columns: 1fr 2fr; }
+    .form-row.cols-31 { grid-template-columns: 2fr 1fr; }
+
+    .form-label {
+      display: block;
+      font-size: .65rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--slate-400);
+      margin-bottom: 5px;
+    }
+    .form-input {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1.5px solid var(--slate-200);
+      border-radius: 10px;
+      font-size: .83rem;
+      color: var(--slate-700);
+      background: var(--slate-50);
+      outline: none;
+      transition: border-color .15s;
+    }
+    .form-input:focus { border-color: var(--emerald); box-shadow: 0 0 0 2px rgba(5,150,105,.1); }
+    .form-input[type="date"] { cursor: pointer; }
+    .form-input.dirty { border-color: #fbbf24; }
+
+    .section-title {
+      font-size: .7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--slate-400);
+      margin: 16px 0 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--slate-100);
+    }
+
+    .action-row {
+      display: flex;
+      gap: 8px;
+      padding: 14px 16px;
+      border-top: 1px solid var(--slate-100);
+      background: white;
+      flex-shrink: 0;
+    }
+
+    /* Certificates tab */
+    .cert-card {
+      background: var(--slate-50);
+      border: 1px solid var(--slate-200);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .cert-card .cert-info { flex: 1; min-width: 0; }
+    .cert-card .cert-type { font-size: .72rem; font-weight: 800; text-transform: uppercase; color: var(--emerald); letter-spacing: .06em; }
+    .cert-card .cert-name { font-weight: 700; color: var(--slate-800); font-size: .85rem; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cert-card .cert-date { font-size: .7rem; color: var(--slate-400); margin-top: 2px; }
+
+    /* Lead tab */
+    .lead-section { margin-bottom: 16px; }
+    .lead-section h4 { font-size: .72rem; font-weight: 800; text-transform: uppercase; color: var(--slate-400); margin-bottom: 8px; letter-spacing: .07em; border-bottom: 1px solid var(--slate-100); padding-bottom: 6px; }
+    /* Filter drawer */
+    .filter-overlay {
+      display: none;
+      position: fixed; inset: 0; background: rgba(0,0,0,.3); z-index: 40;
+    }
+    .filter-overlay.open { display: block; }
+    .filter-drawer {
+      position: fixed;
+      top: 0; right: 0; bottom: 0;
+      width: 300px;
+      background: white;
+      border-left: 1px solid var(--slate-200);
+      box-shadow: var(--shadow-lg);
+      z-index: 41;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform .3s;
+    }
+    .filter-overlay.open .filter-drawer { transform: translateX(0); }
+    .filter-drawer-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--slate-100);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .filter-drawer-header h3 { font-weight: 800; color: var(--slate-800); }
+    .filter-drawer-body { flex: 1; overflow-y: auto; padding: 20px; }
+    .filter-drawer-footer { padding: 16px 20px; border-top: 1px solid var(--slate-100); display: flex; gap: 8px; }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--slate-800);
+      color: white;
+      padding: 12px 18px;
+      border-radius: 12px;
+      font-size: .85rem;
+      font-weight: 600;
+      box-shadow: var(--shadow-lg);
+      z-index: 100;
+      animation: slideUp .25s ease;
+      max-width: 320px;
+    }
+    .toast.success { background: var(--emerald); }
+    .toast.error { background: var(--red); }
+    @keyframes slideUp { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    /* Batch member modal */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.4);
+      backdrop-filter: blur(2px);
+      z-index: 50;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: white;
+      border-radius: 20px;
+      width: 90%;
+      max-width: 380px;
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+    }
+    .modal-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--slate-100);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-header h3 { font-weight: 800; color: var(--slate-800); font-size: .95rem; }
+    .modal-body { max-height: 380px; overflow-y: auto; }
+    .modal-member {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--slate-50);
+      cursor: pointer;
+      transition: background .1s;
+    }
+    .modal-member:hover { background: var(--slate-50); }
+    .modal-member:last-child { border-bottom: none; }
+
+    /* Misc */
+    .icon-btn {
+      width: 28px; height: 28px;
+      display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      background: transparent;
+      color: var(--slate-400);
+      transition: all .15s;
+    }
+    .icon-btn:hover { background: var(--slate-100); color: var(--slate-700); }
+    .icon-btn.danger:hover { background: #fef2f2; color: var(--red); }
+
+    .text-emerald { color: var(--emerald); }
+    .text-red { color: var(--red); }
+    .text-slate { color: var(--slate-400); }
+    .font-bold { font-weight: 700; }
+    .font-black { font-weight: 900; }
+
+    @media (max-width: 768px) {
+      .right-panel { width: 100%; }
+      .left-panel.panel-shifted { margin-right: 0; }
+      .col-hide-md { display: none; }
+    }
+
+    /* Loading bar */
+    .loading-bar {
+      padding: 8px 20px;
+      background: #ecfdf5;
+      color: var(--emerald-dark);
+      font-size: .78rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid #d1fae5;
+    }
+    .checkbox-wrap { display: flex; align-items: center; gap: 8px; font-size: .85rem; color: var(--slate-700); cursor: pointer; }
+    .checkbox-wrap input { width: 16px; height: 16px; accent-color: var(--emerald); cursor: pointer; }
+
+    /* select dropdown custom */
+    select.form-input { cursor: pointer; }
+  </style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="login-screen">
+  <div class="login-card">
+    <h1>Certificate Management</h1>
+    <p>Sign in to manage internship certificates</p>
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" id="login-user" placeholder="Enter username" autocomplete="username" />
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="login-pass" placeholder="Enter password" autocomplete="current-password" />
+    </div>
+    <div id="login-error" style="color:var(--red);font-size:.82rem;margin-bottom:12px;display:none;"></div>
+    <button class="btn btn-emerald btn-full" id="login-btn" onclick="doLogin()">
+      Sign In
+    </button>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app">
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1>Certificate Management</h1>
+      <span class="topbar-badge">Internship</span>
+    </div>
+    <div class="topbar-right">
+      <span id="user-info"></span>
+      <button class="btn btn-outline btn-sm" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main-layout">
+    <!-- Left panel -->
+    <div class="left-panel" id="left-panel">
+      <!-- Controls -->
+      <div class="controls-bar">
+        <span class="count-chip" id="count-chip">Loading…</span>
+        <!-- View toggle -->
+        <div class="view-toggle">
+          <button id="view-list-btn" class="active" onclick="setViewMode('list')">&#9776; List</button>
+          <button id="view-batch-btn" onclick="setViewMode('batch')">&#9632; Batches</button>
+        </div>
+        <!-- Search -->
+        <div class="search-wrap">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="search-input" placeholder="Search students…" oninput="onSearch(this.value)" />
+        </div>
+        <!-- Filter button -->
+        <button class="btn btn-outline btn-sm" id="filter-btn" onclick="openFilter()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+          Filters
+        </button>
+      </div>
+
+      <!-- Loading bar -->
+      <div id="loading-bar" class="loading-bar" style="display:none">
+        <span class="spinner"></span> Loading all students…
+      </div>
+
+      <!-- Table container -->
+      <div class="table-container" id="table-container">
+        <!-- injected by JS -->
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination" id="pagination" style="display:none"></div>
+    </div>
+
+    <!-- Right panel -->
+    <div class="right-panel" id="right-panel">
+      <div class="panel-header">
+        <div class="panel-student-info">
+          <div class="left">
+            <div class="avatar" id="panel-avatar">?</div>
+            <div>
+              <div class="name" id="panel-name">—</div>
+              <div class="meta">
+                <span id="panel-number">—</span>
+                <span id="panel-wa" class="wa-link" onclick="openWA()" title="Open WhatsApp">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                </span>
+                <span class="text-emerald font-bold" id="panel-course">—</span>
+              </div>
+            </div>
+          </div>
+          <button class="icon-btn" onclick="closePanel()" title="Close">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <!-- Tabs -->
+        <div class="tabs-bar">
+          <button class="tab-btn active" id="tab-details" onclick="setTab('details')">Cert Details</button>
+          <button class="tab-btn" id="tab-certificates" onclick="setTab('certificates')">Certs</button>
+          <button class="tab-btn" id="tab-lead" onclick="setTab('lead')">Lead</button>
+        </div>
+        <!-- Print all (visible on certs tab) -->
+        <div id="print-all-bar" style="display:none;padding:0 0 10px;text-align:right;">
+          <button class="btn btn-emerald btn-sm" id="print-all-btn" onclick="handlePrintAll()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Print All
+          </button>
+        </div>
+      </div>
+
+      <!-- Panel body -->
+      <div class="panel-body" id="panel-body">
+        <!-- injected per tab -->
+      </div>
+
+      <!-- Action row -->
+      <div class="action-row" id="action-row" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Filter Drawer ══ -->
+<div class="filter-overlay" id="filter-overlay" onclick="closeFilter(event)">
+  <div class="filter-drawer" onclick="event.stopPropagation()">
+    <div class="filter-drawer-header">
+      <h3>Filters</h3>
+      <button class="icon-btn" onclick="closeFilter()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="filter-drawer-body">
+      <div class="form-group">
+        <label>College</label>
+        <select class="form-input" id="filter-college" onchange="applyFilters()">
+          <option value="">All Colleges</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Batch Code</label>
+        <select class="form-input" id="filter-batch" onchange="applyFilters()">
+          <option value="">All Batches</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Date From</label>
+        <input type="date" class="form-input" id="filter-from" onchange="applyFilters()" />
+      </div>
+      <div class="form-group">
+        <label>Date To</label>
+        <input type="date" class="form-input" id="filter-to" onchange="applyFilters()" />
+      </div>
+    </div>
+    <div class="filter-drawer-footer">
+      <button class="btn btn-outline" style="flex:1" onclick="resetFilters()">Reset</button>
+      <button class="btn btn-emerald" style="flex:1" onclick="closeFilter()">Apply</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Batch Modal ══ -->
+<div class="modal-overlay" id="batch-modal-overlay" onclick="closeBatchModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3 id="batch-modal-title">Batch Members</h3>
+      <button class="icon-btn" onclick="closeBatchModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="batch-modal-body"></div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════
+const BASE_URL = 'https://ask4people.in/crmapi';
+
+function getHeaders() {
+  const token = localStorage.getItem('crm_token');
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+  };
+}
+
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+let allLeads = [];
+let colleges = [];
+let viewMode = 'list'; // 'list' | 'batch'
+let searchQuery = '';
+let filters = { college: '', batch: '', fromDate: '', toDate: '' };
+let currentPage = 1;
+const PAGE_SIZE = 50;
+
+let selectedLead = null;
+let activeTab = 'details';
+let formData = {};
+let isDirty = false;
+let generatedCerts = [];
+
+let expandedBatches = new Set();
+
+// ══════════════════════════════════════════════
+// LOGIN
+// ══════════════════════════════════════════════
+async function doLogin() {
+  const username = document.getElementById('login-user').value.trim();
+  const password = document.getElementById('login-pass').value.trim();
+  const errEl = document.getElementById('login-error');
+  const btn = document.getElementById('login-btn');
+  if (!username || !password) { showLoginError('Please enter credentials.'); return; }
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  try {
+    const res = await fetch(`${BASE_URL}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    });
+    const data = await res.json();
+    if (data.accessToken) {
+      localStorage.setItem('crm_token', data.accessToken);
+      localStorage.setItem('crm_user', JSON.stringify(data.user || { username }));
+      showApp();
+    } else {
+      showLoginError(data.message || 'Login failed.');
+    }
+  } catch (e) {
+    showLoginError('Network error. Check connection.');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Sign In';
+  }
+}
+
+document.getElementById('login-pass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+document.getElementById('login-user').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+function showLoginError(msg) {
+  const el = document.getElementById('login-error');
+  el.textContent = msg; el.style.display = 'block';
+}
+
+function doLogout() {
+  localStorage.removeItem('crm_token');
+  localStorage.removeItem('crm_user');
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  allLeads = []; selectedLead = null;
+}
+
+function showApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  const user = JSON.parse(localStorage.getItem('crm_user') || '{}');
+  document.getElementById('user-info').textContent = user.username || '';
+  loadData();
+}
+
+// Auto-login if token exists
+window.addEventListener('DOMContentLoaded', () => {
+  if (localStorage.getItem('crm_token')) showApp();
+});
+
+// ══════════════════════════════════════════════
+// DATA LOADING
+// ══════════════════════════════════════════════
+async function loadData() {
+  showLoadingBar(true);
+  renderTable();
+  try {
+    // Load colleges
+    fetch(`${BASE_URL}/intern/colleges`, { headers: getHeaders() })
+      .then(r => r.ok ? r.json() : [])
+      .then(data => {
+        if (Array.isArray(data)) {
+          colleges = data.map(i => typeof i === 'string' ? i : (i.name || i.college || '')).filter(Boolean);
+          populateCollegeFilter();
+        }
+      }).catch(() => {});
+
+    // Load all internship leads (paginated fetch)
+    let page = 1, total = Infinity, all = [];
+    while (all.length < total) {
+      const res = await fetch(`${BASE_URL}/leads/query`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ view: 'internship-enrolled', page, limit: 200, includeStats: false, mode: 'full', searchQuery: '', filters: {} }),
+      });
+      if (!res.ok) break;
+      const data = await res.json();
+      if (!data?.success) break;
+      total = typeof data.total === 'number' ? data.total : all.length + data.leads.length;
+      all = all.concat(data.leads || []);
+      if (!data.leads || data.leads.length < 200) break;
+      page++;
+      if (page > 100) break;
+    }
+    allLeads = all;
+    renderTable();
+    populateBatchFilter();
+    if (colleges.length === 0) deriveColleges();
+  } catch (e) {
+    console.error(e);
+  } finally {
+    showLoadingBar(false);
+  }
+}
+
+function showLoadingBar(show) {
+  document.getElementById('loading-bar').style.display = show ? 'flex' : 'none';
+}
+
+function deriveColleges() {
+  const set = new Set();
+  allLeads.forEach(l => {
+    const d = Array.isArray(l.InternDetails) ? l.InternDetails : [];
+    const latest = d[d.length - 1];
+    if (latest?.college) set.add(latest.college.trim());
+  });
+  colleges = [...set];
+  populateCollegeFilter();
+}
+
+function populateCollegeFilter() {
+  const sel = document.getElementById('filter-college');
+  sel.innerHTML = '<option value="">All Colleges</option>';
+  colleges.forEach(c => sel.add(new Option(c, c)));
+}
+
+function populateBatchFilter() {
+  const codes = new Set();
+  allLeads.forEach(l => {
+    const d = Array.isArray(l.InternDetails) ? l.InternDetails : [];
+    const latest = d[d.length - 1];
+    if (latest?.batch_code) codes.add(latest.batch_code.trim());
+  });
+  const sel = document.getElementById('filter-batch');
+  sel.innerHTML = '<option value="">All Batches</option>';
+  [...codes].sort().forEach(c => sel.add(new Option(c, c)));
+}
+
+// ══════════════════════════════════════════════
+// FILTERING
+// ══════════════════════════════════════════════
+function getFilteredLeads() {
+  const q = searchQuery.toLowerCase();
+  return allLeads.filter(l => {
+    const num = String(l.userNumber ?? '');
+    const matchSearch = !q || (l.userName || '').toLowerCase().includes(q) || num.includes(q);
+
+    const d = Array.isArray(l.InternDetails) ? l.InternDetails : [];
+    const latest = d[d.length - 1];
+
+    const matchCollege = !filters.college || (latest?.college || '').toLowerCase() === filters.college.toLowerCase();
+    const matchBatch = !filters.batch || (latest?.batch_code || '').trim() === filters.batch;
+
+    const created = new Date(typeof l.datecreated === 'string' ? l.datecreated : (l.datecreated?.$date || '')).getTime();
+    const fromOk = !filters.fromDate || created >= new Date(filters.fromDate).getTime();
+    const toOk = !filters.toDate || created <= new Date(filters.toDate).getTime() + 86399999;
+
+    return matchSearch && matchCollege && matchBatch && fromOk && toOk;
+  });
+}
+
+// ══════════════════════════════════════════════
+// RENDER TABLE
+// ══════════════════════════════════════════════
+function renderTable() {
+  const filtered = getFilteredLeads();
+  const hasFilter = searchQuery || filters.college || filters.batch || filters.fromDate || filters.toDate;
+  const totalPages = hasFilter ? 1 : Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  if (currentPage > totalPages) currentPage = 1;
+
+  const paged = hasFilter ? filtered : filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  document.getElementById('count-chip').textContent = `${filtered.length} student${filtered.length !== 1 ? 's' : ''}`;
+
+  const container = document.getElementById('table-container');
+
+  if (viewMode === 'list') {
+    renderListView(paged, container);
+    renderPagination(totalPages);
+  } else {
+    renderBatchView(filtered, container);
+    document.getElementById('pagination').style.display = 'none';
+  }
+}
+
+function renderListView(paged, container) {
+  if (paged.length === 0) {
+    container.innerHTML = `<div class="empty-state">No students found.</div>`;
+    return;
+  }
+  let html = `<table>
+    <thead>
+      <tr>
+        <th>Student</th>
+        <th class="col-hide-md">Contact</th>
+        <th class="col-hide-md">College</th>
+        <th>Batch</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>`;
+
+  paged.forEach(lead => {
+    const d = Array.isArray(lead.InternDetails) ? lead.InternDetails : [];
+    const latest = d[d.length - 1];
+    const batch = latest?.batch_code?.trim() || '';
+    const college = latest?.college || '';
+    const isSelected = selectedLead?._id === lead._id;
+    const initial = (lead.userName || '?')[0].toUpperCase();
+    const hasCerts = Array.isArray(lead.certificates) && lead.certificates.length > 0;
+
+    html += `<tr class="${isSelected ? 'selected' : ''}" onclick="selectLead('${esc(lead._id)}')">
+      <td>
+        <div class="cell-name">
+          <div class="avatar">${esc(initial)}</div>
+          <div class="info">
+            <span class="name">${esc(lead.userName || '—')}</span>
+            <span class="sub">${hasCerts ? '✓ Certs ready' : 'No certs'}</span>
+          </div>
+          ${lead.is_leader ? `<span class="badge badge-leader">★ Leader</span>` : ''}
+        </div>
+      </td>
+      <td class="col-hide-md">${esc(lead.userNumber || '—')}</td>
+      <td class="col-hide-md" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(college || '—')}</td>
+      <td>${batch ? `<span class="badge badge-batch" style="${batchStyle(batch)}" onclick="event.stopPropagation();showBatchModal('${esc(batch)}')">${esc(batch)}</span>` : `<button class="btn btn-violet btn-xs" onclick="event.stopPropagation();genBatch('${esc(lead._id)}',this)">Gen Batch</button>`}</td>
+      <td><button class="btn btn-outline btn-xs" onclick="event.stopPropagation();selectLead('${esc(lead._id)}')">Manage →</button></td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+function renderBatchView(filtered, container) {
+  const map = new Map();
+  filtered.forEach(lead => {
+    const d = Array.isArray(lead.InternDetails) ? lead.InternDetails : [];
+    const latest = d[d.length - 1];
+    const code = latest?.batch_code?.trim() || '__none__';
+    if (!map.has(code)) map.set(code, []);
+    map.get(code).push(lead);
+  });
+
+  const groups = [...map.entries()].sort(([a], [b]) => {
+    if (a === '__none__') return 1;
+    if (b === '__none__') return -1;
+    return a.localeCompare(b);
+  });
+
+  if (groups.length === 0) { container.innerHTML = `<div class="empty-state">No students found.</div>`; return; }
+
+  let html = '';
+  groups.forEach(([code, members]) => {
+    const isNone = code === '__none__';
+    const label = isNone ? 'No Batch Assigned' : code;
+    const open = expandedBatches.has(code);
+    const style = isNone ? 'background:var(--slate-50);border-color:var(--slate-200);color:var(--slate-500);' : batchStyle(code);
+
+    html += `<div class="batch-group">
+      <div class="batch-group-header" onclick="toggleBatch('${esc(code)}')">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="badge" style="${style}">${esc(label)}</span>
+          <span style="font-size:.75rem;color:var(--slate-400);font-weight:700;">${members.length} student${members.length !== 1 ? 's' : ''}</span>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color:var(--slate-400);transform:${open ? 'rotate(180deg)' : ''};transition:transform .2s"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="batch-group-members ${open ? 'open' : ''}">`;
+
+    members.forEach(lead => {
+      const isSelected = selectedLead?._id === lead._id;
+      const initial = (lead.userName || '?')[0].toUpperCase();
+      html += `<div class="batch-member ${isSelected ? 'selected' : ''}" onclick="selectLead('${esc(lead._id)}')">
+        <div class="avatar">${esc(initial)}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:700;font-size:.85rem;color:var(--slate-800);">${esc(lead.userName || '—')}${lead.is_leader ? ` <span class="badge badge-leader" style="font-size:.6rem;">★</span>` : ''}</div>
+          <div style="font-size:.72rem;color:var(--slate-400);">${esc(lead.userNumber || '')}</div>
+        </div>
+        ${isNone ? `<button class="btn btn-violet btn-xs" onclick="event.stopPropagation();genBatch('${esc(lead._id)}',this)">Gen</button>` : ''}
+      </div>`;
+    });
+
+    html += `</div></div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+function renderPagination(totalPages) {
+  const el = document.getElementById('pagination');
+  if (totalPages <= 1) { el.style.display = 'none'; return; }
+  el.style.display = 'flex';
+  let html = `<button ${currentPage === 1 ? 'disabled' : ''} onclick="goPage(${currentPage - 1})">← Prev</button>`;
+  for (let i = 1; i <= totalPages; i++) {
+    if (totalPages > 10 && Math.abs(i - currentPage) > 2 && i !== 1 && i !== totalPages) {
+      if (i === 2 || i === totalPages - 1) html += '<span style="color:var(--slate-400);padding:0 4px">…</span>';
+      continue;
+    }
+    html += `<button class="${i === currentPage ? 'active' : ''}" onclick="goPage(${i})">${i}</button>`;
+  }
+  html += `<button ${currentPage === totalPages ? 'disabled' : ''} onclick="goPage(${currentPage + 1})">Next →</button>`;
+  el.innerHTML = html;
+}
+
+function goPage(p) { currentPage = p; renderTable(); }
+
+// ══════════════════════════════════════════════
+// BATCH COLORS
+// ══════════════════════════════════════════════
+const PALETTES = [
+  { bg: '#f5f3ff', border: '#c4b5fd', text: '#5b21b6' },
+  { bg: '#f0f9ff', border: '#bae6fd', text: '#0369a1' },
+  { bg: '#fffbeb', border: '#fde68a', text: '#92400e' },
+  { bg: '#fff1f2', border: '#fecdd3', text: '#9f1239' },
+  { bg: '#f0fdfa', border: '#99f6e4', text: '#115e59' },
+  { bg: '#fdf4ff', border: '#e9d5ff', text: '#6b21a8' },
+  { bg: '#f7fee7', border: '#bbf7d0', text: '#14532d' },
+  { bg: '#fff7ed', border: '#fed7aa', text: '#7c2d12' },
+];
+
+function batchColor(code) {
+  let hash = 0;
+  for (let i = 0; i < code.length; i++) hash = (hash * 31 + code.charCodeAt(i)) & 0xffff;
+  return PALETTES[hash % PALETTES.length];
+}
+
+function batchStyle(code) {
+  const c = batchColor(code);
+  return `background:${c.bg};border:1px solid ${c.border};color:${c.text};`;
+}
+
+// ══════════════════════════════════════════════
+// SELECT LEAD / PANEL
+// ══════════════════════════════════════════════
+function selectLead(id) {
+  const lead = allLeads.find(l => l._id === id);
+  if (!lead) return;
+  selectedLead = lead;
+  populatePanel();
+  openPanel();
+  renderTable();
+}
+
+function openPanel() {
+  document.getElementById('right-panel').classList.add('open');
+  document.getElementById('left-panel').classList.add('panel-shifted');
+}
+
+function closePanel() {
+  document.getElementById('right-panel').classList.remove('open');
+  document.getElementById('left-panel').classList.remove('panel-shifted');
+  selectedLead = null;
+  renderTable();
+}
+
+function populatePanel() {
+  const lead = selectedLead;
+  // Header
+  document.getElementById('panel-avatar').textContent = (lead.userName || '?')[0].toUpperCase();
+  document.getElementById('panel-name').textContent = lead.userName || '—';
+  document.getElementById('panel-number').textContent = lead.userNumber || '—';
+  document.getElementById('panel-course').textContent = lead.course || '—';
+
+  // Pre-fill form data
+  const d = Array.isArray(lead.InternDetails) ? lead.InternDetails : [];
+  const latest = d[d.length - 1];
+  const raw = (lead.userNumber || '').replace(/\D/g, '');
+  const phone10 = raw.startsWith('91') && raw.length === 12 ? raw.slice(2) : raw;
+
+  if (latest) {
+    formData = {
+      ...emptyForm(),
+      ...latest,
+      start_date: latest.start_date ? latest.start_date.split('T')[0] : '',
+      end_date: latest.end_date ? latest.end_date.split('T')[0] : '',
+      issue_date: latest.issue_date ? latest.issue_date.split('T')[0] : '',
+    };
+  } else {
+    formData = { ...emptyForm(), userName: lead.userName || '', phone: phone10 };
+  }
+
+  generatedCerts = Array.isArray(lead.certificates) ? lead.certificates : [];
+  isDirty = false;
+
+  // Default tab
+  const tab = generatedCerts.length > 0 ? 'certificates' : 'details';
+  setTab(tab);
+}
+
+function setTab(tab) {
+  activeTab = tab;
+  ['details', 'certificates', 'lead'].forEach(t => {
+    document.getElementById(`tab-${t}`).classList.toggle('active', t === tab);
+  });
+
+  // Update cert tab label
+  document.getElementById('tab-certificates').textContent = `Certs${generatedCerts.length > 0 ? ` (${generatedCerts.length})` : ''}`;
+
+  // Print all bar visibility
+  document.getElementById('print-all-bar').style.display = tab === 'certificates' ? 'block' : 'none';
+
+  renderPanelBody();
+}
+
+// ══════════════════════════════════════════════
+// PANEL BODY RENDER
+// ══════════════════════════════════════════════
+function renderPanelBody() {
+  const body = document.getElementById('panel-body');
+  const actionRow = document.getElementById('action-row');
+
+  if (activeTab === 'details') {
+    body.innerHTML = renderDetailsForm();
+    actionRow.style.display = 'flex';
+    actionRow.innerHTML = renderDetailsActions();
+  } else if (activeTab === 'certificates') {
+    body.innerHTML = renderCertificatesTab();
+    actionRow.style.display = 'flex';
+    actionRow.innerHTML = renderCertActions();
+  } else if (activeTab === 'lead') {
+    body.innerHTML = renderLeadTab();
+    actionRow.style.display = 'none';
+  }
+}
+
+function emptyForm() {
+  return {
+    salutation: '', userName: '', userEmail: '', phone: '',
+    reg_no: '', year_of_study: '', college: '', college_location: '',
+    degree: '', other_degree: '', department: '',
+    internship: '', other_internship: '',
+    workshop: '', other_workshop: '',
+    start_date: '', end_date: '', issue_date: '',
+    company: '', batch_code: '',
+  };
+}
+
+// ──────────────────── DETAILS TAB ────────────────────
+const SALUTATIONS = ['Mr', 'Ms', 'Mrs', 'Dr', 'Prof'];
+const INTERNSHIP_OPTIONS = ['Python', 'Java', 'Web Development', 'Data Science', 'Machine Learning', 'Cyber Security', 'Cloud Computing', 'Other'];
+const WORKSHOP_OPTIONS = ['Python', 'Java', 'Web Development', 'Data Science', 'Machine Learning', 'Cyber Security', 'Cloud Computing', 'Other'];
+const DEGREE_OPTIONS = ['B.E', 'B.Tech', 'B.Sc', 'B.Com', 'BCA', 'MCA', 'M.Tech', 'M.Sc', 'MBA', 'Other'];
+
+function renderDetailsForm() {
+  const f = formData;
+  const sel = (name, opts, val, extra='') => {
+    const options = opts.map(o => `<option value="${esc(o)}" ${val === o ? 'selected' : ''}>${esc(o)}</option>`).join('');
+    return `<select class="form-input" onchange="fieldChange('${name}',this.value)" ${extra}><option value="">—</option>${options}</select>`;
+  };
+  const inp = (name, val, type='text', extra='') =>
+    `<input class="form-input" type="${type}" value="${esc(val || '')}" oninput="fieldChange('${name}',this.value)" ${extra} />`;
+
+  return `
+    <div class="section-title">Personal Info</div>
+    <div class="form-row cols-13">
+      <div><label class="form-label">Salutation</label>${sel('salutation', SALUTATIONS, f.salutation)}</div>
+      <div><label class="form-label">Full Name</label>${inp('userName', f.userName)}</div>
+    </div>
+    <div class="form-row cols-2">
+      <div><label class="form-label">Email</label>${inp('userEmail', f.userEmail, 'email')}</div>
+      <div><label class="form-label">Phone</label>${inp('phone', f.phone, 'tel')}</div>
+    </div>
+    <div class="form-row cols-2">
+      <div><label class="form-label">Reg. No.</label>${inp('reg_no', f.reg_no)}</div>
+      <div><label class="form-label">Year of Study</label>${inp('year_of_study', f.year_of_study)}</div>
+    </div>
+
+    <div class="section-title">College</div>
+    <div class="form-row cols-2">
+      <div><label class="form-label">College</label>
+        <input class="form-input" list="college-list" value="${esc(f.college || '')}" oninput="fieldChange('college',this.value)" placeholder="Type or select…" />
+        <datalist id="college-list">${colleges.map(c => `<option value="${esc(c)}">`).join('')}</datalist>
+      </div>
+      <div><label class="form-label">Location</label>${inp('college_location', f.college_location)}</div>
+    </div>
+    <div class="form-row cols-2">
+      <div><label class="form-label">Degree</label>${inp('degree', f.degree)}</div>
+      <div><label class="form-label">Other Degree</label>${inp('other_degree', f.other_degree)}</div>
+    </div>
+    <div><label class="form-label">Department</label>${inp('department', f.department)}</div>
+
+    <div class="section-title">Program Details</div>
+    <div class="form-row cols-2">
+      <div><label class="form-label">Internship</label>${inp('internship', f.internship)}</div>
+      <div><label class="form-label">Other Internship</label>${inp('other_internship', f.other_internship)}</div>
+    </div>
+    <div class="form-row cols-2">
+      <div><label class="form-label">Workshop</label>${inp('workshop', f.workshop)}</div>
+      <div><label class="form-label">Other Workshop</label>${inp('other_workshop', f.other_workshop)}</div>
+    </div>
+
+    <div class="section-title">Dates & Batch</div>
+    <div class="form-row cols-3">
+      <div><label class="form-label">Start Date</label>${inp('start_date', f.start_date, 'date')}</div>
+      <div><label class="form-label">End Date</label>${inp('end_date', f.end_date, 'date')}</div>
+      <div><label class="form-label">Issue Date</label>${inp('issue_date', f.issue_date, 'date')}</div>
+    </div>
+    <div class="form-row cols-2">
+      <div><label class="form-label">Company</label>${inp('company', f.company)}</div>
+      <div>
+        <label class="form-label">Batch Code</label>
+        <div style="display:flex;gap:6px;">
+          ${inp('batch_code', f.batch_code)}
+          <button class="btn btn-violet btn-sm" id="gen-batch-btn" onclick="handleGenerateBatch()" style="flex-shrink:0;">Gen</button>
+        </div>
+      </div>
+    </div>
+    <div class="form-row" style="margin-top:8px;">
+      <label class="checkbox-wrap">
+        <input type="checkbox" id="is-leader-cb" ${selectedLead?.is_leader ? 'checked' : ''} onchange="isLeaderChanged(this.checked)" />
+        Mark as Batch Leader
+      </label>
+    </div>
+  `;
+}
+
+function renderDetailsActions() {
+  return `
+    <button class="btn btn-outline" onclick="handleCancel()" style="flex:1">Cancel</button>
+    <button class="btn btn-emerald" id="save-btn" onclick="handleSave()" style="flex:1" ${!isDirty ? 'disabled' : ''}>
+      Save Details
+    </button>
+    <button class="btn btn-emerald" id="gen-cert-btn" onclick="handleGenerate()" style="flex:1">
+      Generate Cert
+    </button>
+  `;
+}
+
+function renderCertificatesTab() {
+  if (generatedCerts.length === 0) {
+    return `<div class="empty-state">No certificates generated yet.<br><br>
+      <button class="btn btn-emerald btn-sm" onclick="setTab('details')">Go to Cert Details →</button>
+    </div>`;
+  }
+  let html = '';
+  generatedCerts.forEach((cert, i) => {
+    const typeLabel = cert.type || (i === 0 ? 'Internship' : 'Workshop');
+    html += `<div class="cert-card">
+      <div class="cert-info">
+        <div class="cert-type">${esc(typeLabel)}</div>
+        <div class="cert-name">${esc(cert.name || cert.title || 'Certificate')}</div>
+        ${cert.generatedAt ? `<div class="cert-date">Generated: ${new Date(cert.generatedAt).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}</div>` : ''}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;">
+        ${cert.url ? `<a href="${esc(cert.url)}" target="_blank" rel="noopener" class="btn btn-emerald btn-xs">Preview</a>` : ''}
+        ${cert.downloadUrl ? `<a href="${esc(cert.downloadUrl)}" target="_blank" download class="btn btn-outline btn-xs">Download</a>` : ''}
+      </div>
+    </div>`;
+  });
+  return html;
+}
+
+function renderCertActions() {
+  return `
+    <button class="btn btn-emerald" onclick="handleGenerate()" style="flex:1">
+      Regenerate Certs
+    </button>
+  `;
+}
+
+// ──────────────────── LEAD TAB ────────────────────
+function renderLeadTab() {
+  const lead = selectedLead;
+  const dateCreated = lead.datecreated
+    ? new Date(typeof lead.datecreated === 'string' ? lead.datecreated : lead.datecreated.$date).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})
+    : '—';
+
+  return `
+    <div class="lead-section">
+      <h4>Lead Info</h4>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:.84rem;">
+        <div><span style="color:var(--slate-400);font-size:.7rem;font-weight:800;">Status</span><br><span style="font-weight:700;">${esc(lead.status || '—')}</span></div>
+        <div><span style="color:var(--slate-400);font-size:.7rem;font-weight:800;">Pipeline</span><br><span style="font-weight:700;">${esc(lead.pipeline || '—')}</span></div>
+        <div><span style="color:var(--slate-400);font-size:.7rem;font-weight:800;">Assigned To</span><br><span style="font-weight:700;">${esc(lead.assignedto || '—')}</span></div>
+        <div><span style="color:var(--slate-400);font-size:.7rem;font-weight:800;">Source</span><br><span style="font-weight:700;">${esc(lead.leadfrom || '—')}</span></div>
+        <div><span style="color:var(--slate-400);font-size:.7rem;font-weight:800;">Created</span><br><span style="font-weight:700;">${dateCreated}</span></div>
+        <div><span style="color:var(--slate-400);font-size:.7rem;font-weight:800;">Email</span><br><span style="font-weight:700;">${esc(lead.userEmail || '—')}</span></div>
+      </div>
+    </div>
+  `;
+}
+
+// ══════════════════════════════════════════════
+// FORM HANDLERS
+// ══════════════════════════════════════════════
+function fieldChange(field, value) {
+  formData[field] = value;
+  isDirty = true;
+  const saveBtn = document.getElementById('save-btn');
+  if (saveBtn) saveBtn.disabled = false;
+}
+
+function isLeaderChanged(val) {
+  if (!selectedLead) return;
+  selectedLead.is_leader = val;
+  isDirty = true;
+  const saveBtn = document.getElementById('save-btn');
+  if (saveBtn) saveBtn.disabled = false;
+}
+
+function handleCancel() {
+  if (selectedLead) { populatePanel(); }
+}
+
+async function handleSave() {
+  if (!selectedLead) return;
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    const payload = {
+      ...formData,
+      is_leader: document.getElementById('is-leader-cb')?.checked ?? selectedLead.is_leader,
+    };
+    const res = await fetch(`${BASE_URL}/intern/certificate`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (data.success && data.chat) {
+      updateLeadInState({ ...selectedLead, InternDetails: data.chat.InternDetails || [], is_leader: data.chat.is_leader ?? selectedLead.is_leader });
+      isDirty = false;
+      toast('Certificate details saved!', 'success');
+    } else {
+      toast(data.message || 'Save failed.', 'error');
+    }
+  } catch (e) {
+    toast('Network error.', 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Save Details'; }
+  }
+}
+
+async function handleGenerate() {
+  if (!selectedLead) return;
+  const btn = document.getElementById('gen-cert-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Generating…'; }
+  try {
+    const res = await fetch(`${BASE_URL}/intern/certificate/generate`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ userNumber: selectedLead.userNumber }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      generatedCerts = data.certificates || [];
+      updateLeadInState({ ...selectedLead, certificates: generatedCerts, ...(data.internDetails ? { InternDetails: [data.internDetails] } : {}) });
+      setTab('certificates');
+      toast('Certificates generated!', 'success');
+    } else {
+      toast(data.message || 'Generation failed.', 'error');
+    }
+  } catch (e) {
+    toast('Network error.', 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Generate Cert'; }
+  }
+}
+
+async function handlePrintAll() {
+  if (!selectedLead) return;
+  const btn = document.getElementById('print-all-btn');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner" style="width:12px;height:12px;"></span> Opening…'; }
+  try {
+    const res = await fetch(`${BASE_URL}/intern/certificates/print-all`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ userNumber: selectedLead.userNumber }),
+    });
+    const data = await res.json();
+    if (data.success && data.url) {
+      window.open(data.url, '_blank', 'noopener');
+    } else {
+      toast(data.message || 'Failed to open combined PDF.', 'error');
+    }
+  } catch (e) {
+    toast('Network error.', 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Print All'; }
+  }
+}
+
+async function handleGenerateBatch() {
+  if (!selectedLead) return;
+  const btn = document.getElementById('gen-batch-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+  try {
+    const d = Array.isArray(selectedLead.InternDetails) ? selectedLead.InternDetails : [];
+    const internIndex = d.length > 0 ? d.length - 1 : undefined;
+    const body = {};
+    if (internIndex !== undefined) body.internIndex = internIndex;
+    const res = await fetch(`${BASE_URL}/intern/${selectedLead._id}/generate-batch`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    if (data.success && data.batch_code) {
+      formData.batch_code = data.batch_code;
+      isDirty = true;
+      renderPanelBody();
+      toast(`Batch code: ${data.batch_code}`, 'success');
+    } else {
+      toast(data.message || 'Failed to generate batch code.', 'error');
+    }
+  } catch (e) {
+    toast('Network error.', 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Gen'; }
+  }
+}
+
+// Generate batch from list/batch view
+async function genBatch(leadId, btn) {
+  const lead = allLeads.find(l => l._id === leadId);
+  if (!lead) return;
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+  try {
+    const d = Array.isArray(lead.InternDetails) ? lead.InternDetails : [];
+    const internIndex = d.length > 0 ? d.length - 1 : undefined;
+    const body = {};
+    if (internIndex !== undefined) body.internIndex = internIndex;
+    const res = await fetch(`${BASE_URL}/intern/${lead._id}/generate-batch`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    if (data.success && data.batch_code) {
+      const updatedDetails = [...d];
+      const idx = internIndex ?? updatedDetails.length - 1;
+      if (updatedDetails[idx]) updatedDetails[idx] = { ...updatedDetails[idx], batch_code: data.batch_code };
+      updateLeadInState({ ...lead, InternDetails: updatedDetails });
+      populateBatchFilter();
+      toast(`Batch code: ${data.batch_code}`, 'success');
+    } else {
+      toast(data.message || 'Failed.', 'error');
+    }
+  } catch (e) {
+    toast('Network error.', 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Gen Batch'; }
+  }
+}
+
+// ══════════════════════════════════════════════
+// BATCH MODAL
+// ══════════════════════════════════════════════
+function showBatchModal(code) {
+  const members = allLeads.filter(l => {
+    const d = Array.isArray(l.InternDetails) ? l.InternDetails : [];
+    const latest = d[d.length - 1];
+    return (latest?.batch_code?.trim() || '') === code;
+  });
+  document.getElementById('batch-modal-title').textContent = `${code} · ${members.length} student${members.length !== 1 ? 's' : ''}`;
+  const body = document.getElementById('batch-modal-body');
+  body.innerHTML = members.map(m => `
+    <div class="modal-member" onclick="selectLead('${esc(m._id)}');closeBatchModal()">
+      <div class="avatar">${esc((m.userName || '?')[0].toUpperCase())}</div>
+      <div>
+        <div style="font-weight:700;font-size:.85rem;">${esc(m.userName || '—')}</div>
+        <div style="font-size:.72rem;color:var(--slate-400);">${esc(m.userNumber || '')}</div>
+      </div>
+    </div>`).join('');
+  document.getElementById('batch-modal-overlay').classList.add('open');
+}
+
+function closeBatchModal() {
+  document.getElementById('batch-modal-overlay').classList.remove('open');
+}
+
+// ══════════════════════════════════════════════
+// CONTROLS
+// ══════════════════════════════════════════════
+function setViewMode(mode) {
+  viewMode = mode;
+  document.getElementById('view-list-btn').classList.toggle('active', mode === 'list');
+  document.getElementById('view-batch-btn').classList.toggle('active', mode === 'batch');
+  currentPage = 1;
+  renderTable();
+}
+
+function onSearch(val) {
+  searchQuery = val;
+  currentPage = 1;
+  renderTable();
+}
+
+function openFilter() {
+  document.getElementById('filter-overlay').classList.add('open');
+}
+
+function closeFilter(e) {
+  if (!e || e.target === document.getElementById('filter-overlay')) {
+    document.getElementById('filter-overlay').classList.remove('open');
+  }
+}
+
+function applyFilters() {
+  filters.college = document.getElementById('filter-college').value;
+  filters.batch = document.getElementById('filter-batch').value;
+  filters.fromDate = document.getElementById('filter-from').value;
+  filters.toDate = document.getElementById('filter-to').value;
+  currentPage = 1;
+  const btn = document.getElementById('filter-btn');
+  const hasFilter = filters.college || filters.batch || filters.fromDate || filters.toDate;
+  btn.style.background = hasFilter ? 'var(--emerald)' : '';
+  btn.style.color = hasFilter ? 'white' : '';
+  renderTable();
+}
+
+function resetFilters() {
+  filters = { college: '', batch: '', fromDate: '', toDate: '' };
+  document.getElementById('filter-college').value = '';
+  document.getElementById('filter-batch').value = '';
+  document.getElementById('filter-from').value = '';
+  document.getElementById('filter-to').value = '';
+  document.getElementById('filter-btn').style.background = '';
+  document.getElementById('filter-btn').style.color = '';
+  currentPage = 1;
+  renderTable();
+}
+
+function toggleBatch(code) {
+  if (expandedBatches.has(code)) expandedBatches.delete(code);
+  else expandedBatches.add(code);
+  renderTable();
+}
+
+// ══════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════
+function updateLeadInState(updated) {
+  const idx = allLeads.findIndex(l => l._id === updated._id);
+  if (idx !== -1) allLeads[idx] = updated;
+  if (selectedLead?._id === updated._id) selectedLead = updated;
+  renderTable();
+}
+
+function openWA() {
+  if (!selectedLead) return;
+  const num = (selectedLead.userNumber || '').replace(/\D/g, '');
+  if (num) window.open(`https://wa.me/${num}`, '_blank', 'noopener');
+}
+
+function parseDateStr(d) {
+  if (!d) return '';
+  if (typeof d === 'string') return d.split('T')[0];
+  if (d.$date) return d.$date.split('T')[0];
+  return '';
+}
+
+function numFmt(v) {
+  const n = parseFloat(v) || 0;
+  return n.toLocaleString('en-IN');
+}
+
+function esc(str) {
+  return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+let toastTimer;
+function toast(msg, type='') {
+  const existing = document.querySelector('.toast');
+  if (existing) existing.remove();
+  if (toastTimer) clearTimeout(toastTimer);
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  toastTimer = setTimeout(() => el.remove(), 3200);
+}
+</script>
+</body>
+</html>
