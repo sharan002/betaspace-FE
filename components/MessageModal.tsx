@@ -32,7 +32,7 @@ const MessageModal: React.FC<MessageModalProps> = ({ isOpen, onClose, recipientC
               list="campaign-name-options"
               value={campaignName}
               onChange={(e) => setCampaignName(e.target.value)}
-              placeholder="e.g. Diwali Offer, July Batch..."
+              placeholder="e.g. Diwali Offer, Hot Desk Promo..."
               disabled={isSending}
               className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
             />

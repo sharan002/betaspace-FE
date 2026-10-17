@@ -250,7 +250,7 @@ function MinminiSummarySection({
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
               {[
                 { label: 'New WA Leads', value: minmini.activeLeads, color: 'text-green-700 bg-green-50 border-green-200' },
-                { label: 'Enrolled After WA', value: minmini.enrolledAfterWA, sub: `${conversionPct}% conv.`, color: minmini.enrolledAfterWA > 0 ? 'text-teal-700 bg-teal-50 border-teal-200' : 'text-slate-600 bg-slate-50 border-slate-200' },
+                { label: 'Converted After WA', value: minmini.enrolledAfterWA, sub: `${conversionPct}% conv.`, color: minmini.enrolledAfterWA > 0 ? 'text-teal-700 bg-teal-50 border-teal-200' : 'text-slate-600 bg-slate-50 border-slate-200' },
                 { label: 'Total Exchanges', value: minmini.totalMessages, color: 'text-blue-700 bg-blue-50 border-blue-200' },
                 { label: 'Avg per Lead', value: minmini.avgMessagesPerLead, color: 'text-purple-700 bg-purple-50 border-purple-200' },
                 { label: 'Avg Duration', value: minmini.avgDurationMins > 0 ? `${minmini.avgDurationMins}m` : '< 1m', color: 'text-amber-700 bg-amber-50 border-amber-200' },
@@ -480,7 +480,7 @@ function MonthlyMinminiSection({
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
               {[
                 { label: 'New WA Leads', value: minmini.activeLeads, color: 'text-green-700 bg-green-50 border-green-200' },
-                { label: 'Enrolled After WA', value: minmini.enrolledAfterWA, sub: `${conversionPct}% conv.`, color: minmini.enrolledAfterWA > 0 ? 'text-teal-700 bg-teal-50 border-teal-200' : 'text-slate-600 bg-slate-50 border-slate-200' },
+                { label: 'Converted After WA', value: minmini.enrolledAfterWA, sub: `${conversionPct}% conv.`, color: minmini.enrolledAfterWA > 0 ? 'text-teal-700 bg-teal-50 border-teal-200' : 'text-slate-600 bg-slate-50 border-slate-200' },
                 { label: 'Total Exchanges', value: minmini.totalMessages, color: 'text-blue-700 bg-blue-50 border-blue-200' },
                 { label: 'Avg per Lead', value: minmini.avgMessagesPerLead, color: 'text-purple-700 bg-purple-50 border-purple-200' },
                 { label: 'Avg Duration', value: minmini.avgDurationMins > 0 ? `${minmini.avgDurationMins}m` : '< 1m', color: 'text-amber-700 bg-amber-50 border-amber-200' },
@@ -968,7 +968,7 @@ export default function WeeklyAIReportView({ currentUser }: Props) {
                     <div className="px-5 pb-5 pt-4 border-t border-slate-100 space-y-4">
                       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
                         <MetricCard label="New Leads" value={m.newLeads ?? 0} accent="blue" />
-                        <MetricCard label="Enrolled" value={m.enrolledThisWeek ?? 0} accent="green" />
+                        <MetricCard label="Converted" value={m.enrolledThisWeek ?? 0} accent="green" />
                         <MetricCard
                           label="Not Contacted"
                           value={m.noContactCount ?? 0}
@@ -1110,7 +1110,7 @@ export default function WeeklyAIReportView({ currentUser }: Props) {
                           <div className="flex items-center gap-2 mb-3 flex-wrap">
                             <Icons.Phone className="w-4 h-4 text-red-600" />
                             <p className="text-sm font-bold text-red-800">Pipeline Not Updated</p>
-                            <span className="text-xs text-slate-500">Hot/Warm leads not moved to Enrolled ({hotLeads.length})</span>
+                            <span className="text-xs text-slate-500">Hot/Warm leads not moved to Converted ({hotLeads.length})</span>
                           </div>
                           <div className="space-y-2">
                             {hotLeads.map((lead, i) => (
@@ -1340,7 +1340,7 @@ export default function WeeklyAIReportView({ currentUser }: Props) {
                         <div className="px-5 pb-5 pt-4 border-t border-slate-100 space-y-4">
                           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
                             <MetricCard label="New Leads" value={m.newLeads ?? 0} accent="blue" />
-                            <MetricCard label="Enrolled" value={m.enrolledThisMonth ?? 0} accent="green" />
+                            <MetricCard label="Converted" value={m.enrolledThisMonth ?? 0} accent="green" />
                             <MetricCard
                               label="Not Contacted"
                               value={m.noContactCount ?? 0}
@@ -1454,7 +1454,7 @@ export default function WeeklyAIReportView({ currentUser }: Props) {
                               <div className="flex items-center gap-2 mb-3 flex-wrap">
                                 <Icons.Phone className="w-4 h-4 text-red-600" />
                                 <p className="text-sm font-bold text-red-800">Pipeline Not Updated</p>
-                                <span className="text-xs text-slate-500">Hot/Warm leads not moved to Enrolled ({hotLeads.length})</span>
+                                <span className="text-xs text-slate-500">Hot/Warm leads not moved to Converted ({hotLeads.length})</span>
                               </div>
                               <div className="space-y-2">
                                 {hotLeads.map((lead, i) => (

@@ -6,7 +6,9 @@ import type { CoworkingSpace, Booking } from '../cowork/types';
 
 // const BASE_URL = 'http://localhost:4000'
 
-const BASE_URL = 'https://ask4people.in/crmapi';
+// const BASE_URL = 'https://ask4people.in/crmapi';
+
+const BASE_URL = 'https://betaspace.botkovai.in/crmbeta'
 
 const getHeaders = () => {
   const token = localStorage.getItem('crm_token');

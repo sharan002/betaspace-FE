@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Lead, User } from '../types';
 import { Icons } from './Icons';
+import { isConvertedStage, isQualifiedStage } from '../utils/pipeline';
 import { apiService } from '../services/api';
 
 interface LeadDetailsProps {
@@ -269,7 +270,7 @@ const LeadDetails: React.FC<LeadDetailsProps> = ({ lead, users, currentUserRole,
 
             <div className="space-y-1.5">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-                <div className="w-1 h-1 bg-indigo-400 rounded-full"></div> 3. ROI & Placement Framing
+                <div className="w-1 h-1 bg-indigo-400 rounded-full"></div> 3. ROI & Business Value Framing
               </label>
               <div className="p-3 bg-green-50/50 rounded-xl border border-green-100 text-xs text-green-800 font-medium">
                 {current.roi || 'No details provided'}
@@ -397,7 +398,7 @@ const LeadDetails: React.FC<LeadDetailsProps> = ({ lead, users, currentUserRole,
                 </select>
               </div>
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Program Type</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Plan Duration</label>
                 <div className="p-2.5 bg-slate-50 rounded-xl text-sm font-bold text-slate-700 border">{lead.programType || 'N/A'}</div>
               </div>
             </div>
@@ -417,7 +418,7 @@ const LeadDetails: React.FC<LeadDetailsProps> = ({ lead, users, currentUserRole,
 
             <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-3">
               <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Course of Interest</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Workspace Interest</p>
                 <p className="text-sm font-bold text-slate-800">{lead.course || 'General Enquiry'}</p>
               </div>
               <div>
@@ -448,7 +449,7 @@ const LeadDetails: React.FC<LeadDetailsProps> = ({ lead, users, currentUserRole,
                   <p className="text-xs text-slate-500 italic">Not sent to Meta yet.</p>
                 )}
 
-                {(lead.pipeline === 'Pre-Enrollment' || lead.pipeline === 'Enrolled') && (
+                {(isQualifiedStage(lead.pipeline) || isConvertedStage(lead.pipeline)) && (
                   <button
                     onClick={handleSendToMeta}
                     disabled={loading || !lead.leadgenId}
@@ -456,7 +457,7 @@ const LeadDetails: React.FC<LeadDetailsProps> = ({ lead, users, currentUserRole,
                     className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-blue-700 transition-all active:scale-95 disabled:opacity-50"
                   >
                     <Icons.Send className="w-3.5 h-3.5" />
-                    {lead.pipeline === 'Enrolled' ? 'Send Converted Lead to Meta' : 'Send Qualified Lead to Meta'}
+                    {isConvertedStage(lead.pipeline) ? 'Send Converted Lead to Meta' : 'Send Qualified Lead to Meta'}
                   </button>
                 )}
               </div>

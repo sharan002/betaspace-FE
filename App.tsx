@@ -28,7 +28,7 @@ import { Armchair } from 'lucide-react';
 import { LeadGroupChips, CreateGroupModal, LeadGroupPopup, GroupsPanel } from './components/LeadGroups';
 import { ReferralGroupsButton, ReferralGroupsPanel, ReferralGroupPopup, ReferralCodeChip } from './components/ReferralGroups';
 
-type View = 'dashboard' | 'transferred' | 'reminders' | 'fees' | 'not-interested' | 'daily-report' | 'weekly-ai-report' | 'notes' | 'user-management' | 'group-chat' | 'release-notes' | 'google-analytics' | 'bulk-msg' | 'hr-portal' | 'review-meeting' | 'sales-training' | 'cowork';
+type View = 'dashboard' | 'transferred' | 'reminders' | 'fees' | 'converted' | 'not-interested' | 'daily-report' | 'weekly-ai-report' | 'notes' | 'user-management' | 'group-chat' | 'release-notes' | 'google-analytics' | 'bulk-msg' | 'hr-portal' | 'review-meeting' | 'sales-training' | 'cowork';
 
 export interface FilterState {
   courses: string[];
@@ -82,7 +82,7 @@ const normalizeRemark = (remark: any) => ({
 
 const normalizeLead = (lead: any): Lead => ({
   _id: lead._id?.$oid || lead._id || Math.random().toString(36).substr(2, 9),
-  userName: lead.userName || lead.username || 'Unknown Student',
+  userName: lead.userName || lead.username || 'Unknown Lead',
   userNumber: lead.userNumber || '0000000000',
   course: lead.course || lead.courseofintrest || lead.courseTitle || null,
   leadfrom: lead.leadfrom || lead.source || 'Manual',
@@ -90,7 +90,7 @@ const normalizeLead = (lead: any): Lead => ({
   referralCode: lead.referralCode || null,
   is_referral_leader: !!lead.is_referral_leader,
   status: lead.status || 'Cold',
-  pipeline: lead.pipeline || 'New',
+  pipeline: lead.pipeline || 'New Lead',
   conversations: Array.isArray(lead.conversations) ? lead.conversations : [],
   remarks: Array.isArray(lead.remarks) ? lead.remarks.map(normalizeRemark) : [],
   datecreated: parseMongoDate(lead.datecreated),
@@ -150,7 +150,7 @@ const App: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentView, setCurrentView] = useState<View>(() => {
     const saved = localStorage.getItem('crm_view') as View;
-    const valid: View[] = ['dashboard', 'transferred', 'reminders', 'fees', 'not-interested', 'daily-report', 'notes', 'user-management', 'group-chat', 'release-notes', 'google-analytics', 'bulk-msg', 'hr-portal', 'review-meeting', 'sales-training', 'cowork'];
+    const valid: View[] = ['dashboard', 'transferred', 'reminders', 'fees', 'converted', 'not-interested', 'daily-report', 'notes', 'user-management', 'group-chat', 'release-notes', 'google-analytics', 'bulk-msg', 'hr-portal', 'review-meeting', 'sales-training', 'cowork'];
     return valid.includes(saved) ? saved : 'dashboard';
   });
   const [feesInitialLeadId, setFeesInitialLeadId] = useState<string | null>(null);
@@ -217,6 +217,7 @@ const App: React.FC = () => {
     transferred: 'Transferred Leads',
     reminders: 'Reminders',
     fees: 'Fees',
+    converted: 'Converted',
     'not-interested': 'Not Interested',
     'daily-report': currentUser?.role === 'admin' ? 'Daily Report' : 'My Report',
     'weekly-ai-report': 'AI Report',
@@ -487,6 +488,7 @@ const App: React.FC = () => {
   const isLeadsTableView =
     currentView === 'dashboard' ||
     currentView === 'transferred' ||
+    currentView === 'converted' ||
     currentView === 'not-interested';
   const isDailyReportView = currentView === 'daily-report' || currentView === 'weekly-ai-report';
   // A single checkbox column serves both Messaging Mode and Group Mode.
@@ -514,7 +516,7 @@ const App: React.FC = () => {
       return;
     }
     searchTabTimerRef.current = setTimeout(async () => {
-      const views = ['dashboard', 'not-interested'] as const;
+      const views = ['dashboard', 'converted', 'not-interested'] as const;
       const results = await Promise.all(
         views.map(view =>
           apiService.queryLeads({ view, searchQuery: q, page: 1, limit: 1, includeStats: false, mode: 'summary' })
@@ -1002,7 +1004,7 @@ const App: React.FC = () => {
         <div className="p-6 border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="bg-blue-600 p-2 rounded-lg"><Icons.Settings className="w-6 h-6 text-white" /></div>
-            <h1 className="text-xl font-bold tracking-tight">EduLead CRM</h1>
+            <h1 className="text-xl font-bold tracking-tight">BetaSpace CRM</h1>
           </div>
           <button onClick={() => setIsMobileMenuOpen(false)} className="md:hidden p-2 hover:bg-slate-800 rounded-lg"><Icons.X className="w-5 h-5 text-slate-400" /></button>
         </div>
@@ -1027,6 +1029,15 @@ const App: React.FC = () => {
           <button onClick={() => { setCurrentView('fees'); setIsMobileMenuOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border transition-all relative ${currentView === 'fees' ? 'bg-yellow-600/10 text-yellow-400 border-yellow-600/20' : 'text-slate-400 border-transparent hover:bg-slate-800'}`}>
             <Icons.DollarSign className="w-5 h-5" />
             <span className="font-medium">Fees</span>
+          </button>
+          )}
+          {!isHr && (
+          <button onClick={() => { setCurrentView('converted'); setIsMobileMenuOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border transition-all relative ${currentView === 'converted' ? 'bg-emerald-600/10 text-emerald-400 border-emerald-600/20' : searchQuery.trim() && (searchTabCounts['converted'] ?? 0) > 0 ? 'text-amber-400 border-amber-500/40 bg-amber-500/10' : 'text-slate-400 border-transparent hover:bg-slate-800'}`}>
+            <Icons.CheckCircle className="w-5 h-5" />
+            <span className="font-medium">Converted</span>
+            {searchQuery.trim() && currentView !== 'converted' && (searchTabCounts['converted'] ?? 0) > 0 && (
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 bg-amber-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full min-w-[18px] text-center animate-pulse">{searchTabCounts['converted']}</span>
+            )}
           </button>
           )}
           {!isHr && (
@@ -1473,7 +1484,7 @@ const App: React.FC = () => {
                         <ul className="space-y-2">
                           <li className="flex items-start gap-2">
                             <span className="mt-1 flex-shrink-0 w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]"></span>
-                            <span className="text-xs text-slate-600"><span className="font-bold text-slate-800">Red</span> — Demo Booked</span>
+                            <span className="text-xs text-slate-600"><span className="font-bold text-slate-800">Red</span> — Site Visit Booked</span>
                           </li>
                           <li className="flex items-start gap-2">
                             <span className="mt-1 flex-shrink-0 w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
@@ -1526,7 +1537,7 @@ const App: React.FC = () => {
                             <Icons.Check className="w-4 h-4 text-slate-300 mx-auto" />
                           </th>
                         )}
-                        <th className="px-4 sm:px-6 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-left">Student & Profession</th>
+                        <th className="px-4 sm:px-6 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-left">Lead & Profession</th>
                         <th className="px-4 sm:px-6 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-left hidden sm:table-cell">Program & Source</th>
                         <th className="px-4 sm:px-6 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-left">Status & Pipeline</th>
                         <th className="px-4 sm:px-6 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-left hidden lg:table-cell">AI assistant</th>

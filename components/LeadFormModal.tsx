@@ -3,6 +3,7 @@ import React, { useState, useLayoutEffect } from 'react';
 import { Icons } from './Icons';
 import { SPACE_TYPES } from './FilterPanel';
 import { Lead } from '../types';
+import { PIPELINE_STAGES } from '../utils/pipeline';
 
 interface LeadFormModalProps {
   isOpen: boolean;
@@ -14,7 +15,7 @@ interface LeadFormModalProps {
 }
 
 const LeadFormModal: React.FC<LeadFormModalProps> = ({ isOpen, onClose, onSubmit, initialData, title, currentUserRole }) => {
-  // Non-admins cannot change the program type once it has already been set on this lead.
+  // Non-admins cannot change the plan duration once it has already been set on this lead.
   const isProgramTypeLocked = currentUserRole !== 'admin' && !!initialData?.programType;
   // Lead Status is set automatically by AI; manual edits are disabled once a lead already exists.
   const isStatusLocked = !!initialData;
@@ -77,7 +78,7 @@ const LeadFormModal: React.FC<LeadFormModalProps> = ({ isOpen, onClose, onSubmit
         <form onSubmit={handleSubmit} className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700">Student Name</label>
+              <label className="text-sm font-semibold text-slate-700">Name</label>
               <input
                 type="text"
                 name="userName"
@@ -117,18 +118,23 @@ const LeadFormModal: React.FC<LeadFormModalProps> = ({ isOpen, onClose, onSubmit
               </select>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700">Program Type</label>
+              <label className="text-sm font-semibold text-slate-700">Plan Duration</label>
               <select
                 name="programType"
                 value={formData.programType || ''}
                 onChange={handleChange}
                 disabled={isProgramTypeLocked}
-                title={isProgramTypeLocked ? 'Only admins can change the program type once it has been set' : undefined}
+                title={isProgramTypeLocked ? 'Only admins can change the plan duration once it has been set' : undefined}
                 className={`w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${isProgramTypeLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
               >
                 <option value="">Select</option>
-                <option value="8 Hours">8 Hours</option>
-                <option value="2 Hours">2 Hours</option>
+                <option value="Daily">Daily</option>
+                <option value="Monthly">Monthly</option>
+                <option value="Quarterly">Quarterly</option>
+                <option value="Yearly">Yearly</option>
+                {formData.programType && !['Daily', 'Monthly', 'Quarterly', 'Yearly'].includes(formData.programType) && (
+                  <option value={formData.programType}>{formData.programType}</option>
+                )}
               </select>
             </div>
             <div className="space-y-2">
@@ -140,9 +146,14 @@ const LeadFormModal: React.FC<LeadFormModalProps> = ({ isOpen, onClose, onSubmit
                 className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                  <option value="">Select</option>
-                <option value="Job Seeker">Job Seeker</option>
-                <option value="Student">Student</option>
+                <option value="Freelancer">Freelancer</option>
+                <option value="Startup Founder">Startup Founder</option>
                 <option value="Working Professional">Working Professional</option>
+                <option value="Corporate Team">Corporate Team</option>
+                <option value="Student">Student</option>
+                {formData.profession && !['Freelancer', 'Startup Founder', 'Working Professional', 'Corporate Team', 'Student'].includes(formData.profession) && (
+                  <option value={formData.profession}>{formData.profession}</option>
+                )}
               </select>
             </div>
             <div className="space-y-2">
@@ -190,16 +201,13 @@ const LeadFormModal: React.FC<LeadFormModalProps> = ({ isOpen, onClose, onSubmit
                 className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">Select Stage</option>
-                <option value="New">New</option>
-                <option value="RNR">RNR</option>
-                <option value="Contacted">Contacted</option>
-                <option value="Asked Time">Asked Time</option>
-                <option value="Demo Scheduled">Demo Scheduled</option>
-                <option value="Pre-Enrollment">Pre-Enrollment</option>
-                <option value="Enrolled">Enrolled</option>
-                <option value="Looking for job">Looking for job</option>
-                <option value="Not Interested">Not Interested</option>
-                <option value="Irrelevant">Irrelevant</option>
+                {PIPELINE_STAGES.map(stage => (
+                  <option key={stage} value={stage}>{stage}</option>
+                ))}
+                {/* Keep a lead's legacy stage (e.g. "Enrolled", "Looking for job") selectable until it is migrated */}
+                {formData.pipeline && !(PIPELINE_STAGES as readonly string[]).includes(formData.pipeline) && (
+                  <option value={formData.pipeline}>{formData.pipeline} (legacy)</option>
+                )}
               </select>
             </div>
             <div className="space-y-2 md:col-span-2">

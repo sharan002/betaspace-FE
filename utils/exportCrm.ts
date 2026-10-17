@@ -1,6 +1,7 @@
 import * as XLSX from 'xlsx';
 import { apiService } from '../services/api';
 import type { FilterState } from '../App';
+import { isConvertedStage } from './pipeline';
 
 const EXPORT_CHUNK = 500;
 
@@ -141,7 +142,7 @@ function buildRemindersRows(leads: any[]): any[][] {
 
 function buildFeesRows(leads: any[]): any[][] {
   // Only enrolled leads (same filter as FeesView)
-  const enrolled = leads.filter(l => (l.pipeline || '').toLowerCase() === 'enrolled');
+  const enrolled = leads.filter(l => isConvertedStage(l.pipeline));
 
   // Determine max installments across all enrolled leads
   let maxInst = 0;
@@ -239,16 +240,17 @@ const EXPORT_STEPS: Record<string, ExportStep> = {
   transferred:           { view: 'transferred',         label: 'Transferred',         sheetName: 'Transferred',         mode: 'summary', build: buildDashboardRows     },
   reminders:             { view: 'reminders',           label: 'Reminders',           sheetName: 'Reminders',           mode: 'summary', build: buildRemindersRows     },
   fees:                  { view: 'fees',                label: 'Fees',                sheetName: 'Fees',                mode: 'full',    build: buildFeesRows          },
+  converted:             { view: 'converted',           label: 'Converted',           sheetName: 'Converted',           mode: 'summary', build: buildNotInterestedRows },
   'not-interested':      { view: 'not-interested',      label: 'Not Interested',      sheetName: 'Not Interested',      mode: 'summary', build: buildNotInterestedRows },
 };
 
 // Tabs whose data App.tsx's global FilterPanel actually narrows — Reminders
 // and Fees manage their own local filtering
 // and only share the top search box with the rest of the app.
-const FILTERABLE_VIEWS = new Set(['dashboard', 'transferred', 'not-interested']);
+const FILTERABLE_VIEWS = new Set(['dashboard', 'transferred', 'converted', 'not-interested']);
 
 // Reminders intentionally ignores the search box too (mirrors fetchLeadsForCurrentView in App.tsx).
-const SEARCHABLE_VIEWS = new Set(['dashboard', 'transferred', 'not-interested', 'fees']);
+const SEARCHABLE_VIEWS = new Set(['dashboard', 'transferred', 'converted', 'not-interested', 'fees']);
 
 function isFilterStateActive(filters: FilterState): boolean {
   const {
@@ -285,6 +287,7 @@ export async function exportAllCrmData(onProgress?: (msg: string) => void): Prom
     EXPORT_STEPS.dashboard,
     EXPORT_STEPS.reminders,
     EXPORT_STEPS.fees,
+    EXPORT_STEPS.converted,
     EXPORT_STEPS['not-interested'],
   ];
 

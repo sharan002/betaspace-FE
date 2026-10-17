@@ -185,7 +185,7 @@ function renderReportPdf(data: NormalizedReport): void {
   const cardH = 16;
   const metrics: { label: string; value: string | number; color: ColorKey; sub?: string }[] = [
     { label: 'New Leads', value: data.newLeads, color: 'blue' },
-    { label: 'Enrolled', value: data.enrolled, color: 'green' },
+    { label: 'Converted', value: data.enrolled, color: 'green' },
     {
       label: 'Not Contacted',
       value: data.noContactCount,

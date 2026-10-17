@@ -4,6 +4,7 @@ import { Lead, Installment, User } from '../types';
 import { apiService } from '../services/api';
 import FilterPanel from './FilterPanel';
 import { Icons } from './Icons';
+import { isConvertedStage } from '../utils/pipeline';
 
 interface FeesViewProps {
     leads: Lead[];
@@ -115,7 +116,7 @@ const FeesView: React.FC<FeesViewProps> = ({ leads, users, currentUser, onUpdate
     }, []);
 
     // Filter for enrolled students
-    const enrolledLeads = feesLeads.filter(l => l.pipeline === 'Enrolled');
+    const enrolledLeads = feesLeads.filter(l => isConvertedStage(l.pipeline));
     const selectedLead = enrolledLeads.find(l => l._id === selectedLeadId);
 
     const filteredEnrolledLeads = useMemo(() => {
@@ -999,7 +1000,7 @@ const FeesView: React.FC<FeesViewProps> = ({ leads, users, currentUser, onUpdate
                                         <p className="text-xs font-medium text-slate-700">{selectedLead.assignedto || 'N/A'}</p>
                                     </div>
                                     <div>
-                                        <label className="block text-[10px] text-slate-400 mb-0.5">Program Type</label>
+                                        <label className="block text-[10px] text-slate-400 mb-0.5">Plan Duration</label>
                                         <p className="text-xs font-medium text-slate-700">{selectedLead.programType || 'N/A'}</p>
                                     </div>
                                     <div>
@@ -1012,7 +1013,7 @@ const FeesView: React.FC<FeesViewProps> = ({ leads, users, currentUser, onUpdate
                                     </div>
                                     <div>
                                         <label className="block text-[10px] text-slate-400 mb-0.5">Pipeline</label>
-                                        <span className={`text-xs font-medium px-2 py-0.5 rounded ${selectedLead.pipeline === 'Enrolled' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
+                                        <span className={`text-xs font-medium px-2 py-0.5 rounded ${isConvertedStage(selectedLead.pipeline) ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
                                             {selectedLead.pipeline}
                                         </span>
                                     </div>

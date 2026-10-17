@@ -1,6 +1,6 @@
 {
   "name": "Minmini CRM",
-  "description": "A comprehensive CRM platform for educational institutes to manage leads, track conversations, and assign tasks to staff members.",
+  "description": "A comprehensive CRM platform for co-working spaces to manage leads, track conversations, and assign tasks to staff members.",
   "requestFramePermissions": [
     "camera",
     "microphone"

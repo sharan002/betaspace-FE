@@ -964,13 +964,13 @@ const DailyReportView: React.FC<DailyReportViewProps> = ({ currentUser }) => {
                       {!counsellorPipelineLoading && !counsellorPipelineError && (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                           <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                            <DistributionDonutChart data={counsellorPipelineBySource} label="Enrolled by Lead Source" />
+                            <DistributionDonutChart data={counsellorPipelineBySource} label="Converted by Lead Source" />
                           </div>
                           <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                            <DistributionDonutChart data={counsellorPipelineByCourse} label="Enrolled by Course" />
+                            <DistributionDonutChart data={counsellorPipelineByCourse} label="Converted by Course" />
                           </div>
                           <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                            <DistributionDonutChart data={counsellorPipelineQualifiedVsResponded} label="Enrolled from Qualified vs Responded" />
+                            <DistributionDonutChart data={counsellorPipelineQualifiedVsResponded} label="Converted from Qualified vs Responded" />
                           </div>
                         </div>
                       )}
@@ -1000,13 +1000,13 @@ const DailyReportView: React.FC<DailyReportViewProps> = ({ currentUser }) => {
               {!selectedCounsellor && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                    <DistributionDonutChart data={pipelineBySource} label="Enrolled by Lead Source" />
+                    <DistributionDonutChart data={pipelineBySource} label="Converted by Lead Source" />
                   </div>
                   <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                    <DistributionDonutChart data={pipelineByCourse} label="Enrolled by Course" />
+                    <DistributionDonutChart data={pipelineByCourse} label="Converted by Course" />
                   </div>
                   <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                    <DistributionDonutChart data={pipelineQualifiedVsResponded} label="Enrolled from Qualified vs Responded" />
+                    <DistributionDonutChart data={pipelineQualifiedVsResponded} label="Converted from Qualified vs Responded" />
                   </div>
                 </div>
               )}

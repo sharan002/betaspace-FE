@@ -3,6 +3,7 @@ import React from 'react';
 import { Icons } from './Icons';
 import { FilterState } from '../App';
 import { User } from '../types';
+import { PIPELINE_STAGES } from '../utils/pipeline';
 
 interface FilterPanelProps {
   isOpen: boolean;
@@ -16,11 +17,11 @@ interface FilterPanelProps {
 }
 
 export const SPACE_TYPES = ["Hotdesk", "Co-working", "Meeting Room", "Virtual Office", "Private Office", "Managed Office"];
-const PROGRAM_TYPES = ["8 Hours", "2 Hours"];
-const PROFESSIONS = ["Job Seeker", "Student", "Working Professional"];
+const PROGRAM_TYPES = ["Daily", "Monthly", "Quarterly", "Yearly"];
+const PROFESSIONS = ["Freelancer", "Startup Founder", "Working Professional", "Corporate Team", "Student"];
 const SOURCES = ["WhatsApp", "Meta Ads",'Google ads', "Website","Call","Walk-in","Referral","metaads","BulkMessage"];
 const STATUSES = ["Hot", "Warm", "Cold"];
-const PIPELINES = ["New", "RNR", "Contacted", "Asked Time", "Not Interested" , "Demo Scheduled", "Pre-Enrollment", "Enrolled", "Looking for job" ,  "Irrelevant" ];
+const PIPELINES: string[] = [...PIPELINE_STAGES];
 
 const FilterPanel: React.FC<FilterPanelProps> = ({ isOpen, onClose, filters, users, onFilterChange, onReset, colleges, campaignNames }) => {
   const toggleFilter = (category: keyof FilterState, value: string) => {
@@ -98,7 +99,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({ isOpen, onClose, filters, use
           <FilterGroup label="Pipeline Stage" options={PIPELINES} selected={filters.pipelines} onToggle={(val) => toggleFilter('pipelines', val)} />
           <FilterGroup label="Profession" options={PROFESSIONS} selected={filters.professions} onToggle={(val) => toggleFilter('professions', val)} />
           <FilterGroup label="Lead Source" options={SOURCES} selected={filters.sources} onToggle={(val) => toggleFilter('sources', val)} />
-          <FilterGroup label="Program Type" options={PROGRAM_TYPES} selected={filters.programTypes} onToggle={(val) => toggleFilter('programTypes', val)} />
+          <FilterGroup label="Plan Duration" options={PROGRAM_TYPES} selected={filters.programTypes} onToggle={(val) => toggleFilter('programTypes', val)} />
           {Array.isArray(campaignNames) && campaignNames.length > 0 && (
             <FilterGroup label="Campaign Replied" options={campaignNames} selected={filters.campaigns} onToggle={(val) => toggleFilter('campaigns', val)} />
           )}
