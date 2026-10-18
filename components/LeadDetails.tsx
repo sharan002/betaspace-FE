@@ -398,7 +398,7 @@ const LeadDetails: React.FC<LeadDetailsProps> = ({ lead, users, currentUserRole,
                 </select>
               </div>
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Plan Duration</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{/seats$/i.test(lead.programType || '') ? 'Seats' : 'Plan Duration'}</label>
                 <div className="p-2.5 bg-slate-50 rounded-xl text-sm font-bold text-slate-700 border">{lead.programType || 'N/A'}</div>
               </div>
             </div>
