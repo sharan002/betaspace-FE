@@ -63,7 +63,7 @@ export interface ManagedOfficeOption {
 export interface CoworkingSpace {
   id: string;
   name: string;
-  branchArea: 'Ram Nagar' | 'Singanallur' | 'Koundampalayam' | 'Neelikonampalayam';
+  branchArea: string; // Coimbatore area, e.g. "Ram Nagar"; admins can add new ones
   tagline: string;
   address: string;
   city: string; // "Coimbatore, Tamil Nadu"

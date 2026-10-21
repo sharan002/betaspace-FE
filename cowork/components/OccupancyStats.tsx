@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { CoworkingSpace, Booking, Seat } from '../types';
 import { formatINR, isSeatBooked, getSeatBooking } from '../utils/storage';
-import { getTodayDateString } from '../data/initialData';
+import { getTodayDateString, getKnownAreas } from '../data/initialData';
 
 interface OccupancyStatsProps {
   spaces: CoworkingSpace[];
@@ -271,11 +271,10 @@ export const OccupancyStats: React.FC<OccupancyStatsProps> = ({ spaces, bookings
               onChange={(e) => setActiveBranchTab(e.target.value)}
               className="w-full bg-slate-50 border border-slate-300 text-slate-900 text-xs rounded-lg px-3 py-2 font-semibold focus:outline-none focus:border-sky-500 cursor-pointer"
             >
-              <option value="all">All 4 Coimbatore Hubs</option>
-              <option value="Ram Nagar">Ram Nagar Hub</option>
-              <option value="Singanallur">Singanallur Hub</option>
-              <option value="Koundampalayam">Koundampalayam Hub</option>
-              <option value="Neelikonampalayam">Neelikonampalayam Hub</option>
+              <option value="all">All Coimbatore Hubs</option>
+              {getKnownAreas(spaces).map((a) => (
+                <option key={a} value={a}>{a} Hub</option>
+              ))}
             </select>
           </div>
 

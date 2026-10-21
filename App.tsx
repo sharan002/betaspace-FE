@@ -7,7 +7,6 @@ import LeadFormModal from './components/LeadFormModal';
 import LeadDetails from './components/LeadDetails';
 import FilterPanel from './components/FilterPanel';
 import Login from './components/Login';
-import FeesView from './components/FeesView';
 import MessageModal from './components/MessageModal';
 import LeadAssistantChatbot from './components/LeadAssistantChatbot';
 import DailyReminderGate from './components/DailyReminderGate';
@@ -28,7 +27,7 @@ import { Armchair } from 'lucide-react';
 import { LeadGroupChips, CreateGroupModal, LeadGroupPopup, GroupsPanel } from './components/LeadGroups';
 import { ReferralGroupsButton, ReferralGroupsPanel, ReferralGroupPopup, ReferralCodeChip } from './components/ReferralGroups';
 
-type View = 'dashboard' | 'transferred' | 'reminders' | 'fees' | 'converted' | 'not-interested' | 'daily-report' | 'weekly-ai-report' | 'notes' | 'user-management' | 'group-chat' | 'release-notes' | 'google-analytics' | 'bulk-msg' | 'hr-portal' | 'review-meeting' | 'sales-training' | 'cowork';
+type View = 'dashboard' | 'transferred' | 'reminders' | 'converted' | 'not-interested' | 'daily-report' | 'weekly-ai-report' | 'notes' | 'user-management' | 'group-chat' | 'release-notes' | 'google-analytics' | 'bulk-msg' | 'hr-portal' | 'review-meeting' | 'sales-training' | 'cowork';
 
 export interface FilterState {
   courses: string[];
@@ -150,10 +149,9 @@ const App: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentView, setCurrentView] = useState<View>(() => {
     const saved = localStorage.getItem('crm_view') as View;
-    const valid: View[] = ['dashboard', 'transferred', 'reminders', 'fees', 'converted', 'not-interested', 'daily-report', 'notes', 'user-management', 'group-chat', 'release-notes', 'google-analytics', 'bulk-msg', 'hr-portal', 'review-meeting', 'sales-training', 'cowork'];
+    const valid: View[] = ['dashboard', 'transferred', 'reminders', 'converted', 'not-interested', 'daily-report', 'notes', 'user-management', 'group-chat', 'release-notes', 'google-analytics', 'bulk-msg', 'hr-portal', 'review-meeting', 'sales-training', 'cowork'];
     return valid.includes(saved) ? saved : 'dashboard';
   });
-  const [feesInitialLeadId, setFeesInitialLeadId] = useState<string | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -216,7 +214,6 @@ const App: React.FC = () => {
     dashboard: currentUser?.role === 'hr' ? 'Job Seekers' : 'Dashboard',
     transferred: 'Transferred Leads',
     reminders: 'Reminders',
-    fees: 'Fees',
     converted: 'Converted',
     'not-interested': 'Not Interested',
     'daily-report': currentUser?.role === 'admin' ? 'Daily Report' : 'My Report',
@@ -279,8 +276,8 @@ const App: React.FC = () => {
   const fetchLeadsForCurrentView = async (opts?: { forceLoadAll?: boolean }): Promise<Lead[] | undefined> => {
     if (!currentUser) return;
 
-    // Fees view owns its own data fetching to keep it fast.
-    if (currentView === 'fees' || currentView === 'cowork') return;
+    // Cowork view owns its own data fetching.
+    if (currentView === 'cowork') return;
 
     const requestId = ++leadsRequestIdRef.current;
 
@@ -1026,12 +1023,6 @@ const App: React.FC = () => {
           </button>
           )}
           {!isHr && (
-          <button onClick={() => { setCurrentView('fees'); setIsMobileMenuOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border transition-all relative ${currentView === 'fees' ? 'bg-yellow-600/10 text-yellow-400 border-yellow-600/20' : 'text-slate-400 border-transparent hover:bg-slate-800'}`}>
-            <Icons.DollarSign className="w-5 h-5" />
-            <span className="font-medium">Fees</span>
-          </button>
-          )}
-          {!isHr && (
           <button onClick={() => { setCurrentView('converted'); setIsMobileMenuOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border transition-all relative ${currentView === 'converted' ? 'bg-emerald-600/10 text-emerald-400 border-emerald-600/20' : searchQuery.trim() && (searchTabCounts['converted'] ?? 0) > 0 ? 'text-amber-400 border-amber-500/40 bg-amber-500/10' : 'text-slate-400 border-transparent hover:bg-slate-800'}`}>
             <Icons.CheckCircle className="w-5 h-5" />
             <span className="font-medium">Converted</span>
@@ -1669,18 +1660,6 @@ const App: React.FC = () => {
           <BulkMsgView currentUser={currentUser} />
         ) : currentView === 'release-notes' ? (
           <ReleaseNotesView />
-        ) : currentView === 'fees' ? (
-          <FeesView
-            leads={leads}
-            currentUser={currentUser}
-            users={users}
-            initialLeadId={feesInitialLeadId}
-            searchQuery={searchQuery}
-            onSearchQueryChange={setSearchQuery}
-            onUpdateLead={(updatedLead) => {
-              setLeads(prev => prev.map(l => l._id === updatedLead._id ? updatedLead : l));
-            }}
-          />
         ) : (
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 sm:space-y-8">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">

@@ -28,7 +28,7 @@ export const SpacesManagerTab: React.FC<SpacesManagerTabProps> = ({
             <span>Coimbatore Co-Working Hubs & Branches</span>
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            Manage your spaces in Ram Nagar, Singanallur, Koundampalayam & Neelikonampalayam
+            Manage your spaces across Coimbatore
           </p>
         </div>
 

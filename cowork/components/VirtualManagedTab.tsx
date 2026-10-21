@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Package, Building2, Check, ArrowRight, ShieldCheck, Mail, MapPin, Phone, Users, Clock } from 'lucide-react';
 import { CoworkingSpace } from '../types';
 import { formatINR } from '../utils/storage';
+import { getKnownAreas } from '../data/initialData';
 
 interface VirtualManagedTabProps {
   spaces: CoworkingSpace[];
@@ -47,11 +48,10 @@ export const VirtualManagedTab: React.FC<VirtualManagedTabProps> = ({
               onChange={(e) => setSelectedBranch(e.target.value)}
               className="bg-slate-50 border border-slate-300 text-slate-900 text-xs font-semibold rounded-lg px-3 py-2 cursor-pointer focus:outline-none focus:border-sky-500"
             >
-              <option value="all">All 4 Coimbatore Hubs</option>
-              <option value="Ram Nagar">Ram Nagar Hub</option>
-              <option value="Singanallur">Singanallur Hub</option>
-              <option value="Koundampalayam">Koundampalayam Hub</option>
-              <option value="Neelikonampalayam">Neelikonampalayam Hub</option>
+              <option value="all">All Coimbatore Hubs</option>
+              {getKnownAreas(spaces).map((a) => (
+                <option key={a} value={a}>{a} Hub</option>
+              ))}
             </select>
           </div>
         </div>

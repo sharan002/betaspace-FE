@@ -125,9 +125,9 @@ const UserFormModal = ({
               onChange={(e) => setForm(f => ({ ...f, role: e.target.value as StaffUser['role'] }))}
               className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="user">User (Counsellor)</option>
+              <option value="user">User</option>
               <option value="admin">Admin</option>
-              <option value="cert">Cert</option>
+              {/* <option value="cert">Cert</option> */}
               <option value="hr">HR</option>
             </select>
           </div>

@@ -2,22 +2,28 @@ import React, { useState } from 'react';
 import { X, Building2, Armchair, Plus, Trash2, CheckCircle2, Monitor, Users, Briefcase } from 'lucide-react';
 import { CoworkingSpace, MeetingRoom, PrivateOffice, Seat } from '../types';
 import { formatINR } from '../utils/storage';
+import { DEFAULT_AREAS } from '../data/initialData';
 
 interface SpaceConfigModalProps {
   onClose: () => void;
   onSaveSpace: (space: CoworkingSpace) => void;
   existingSpace?: CoworkingSpace;
+  knownAreas?: string[];
 }
+
+const ADD_NEW_AREA = '__add_new_area__';
 
 export const SpaceConfigModal: React.FC<SpaceConfigModalProps> = ({
   onClose,
   onSaveSpace,
   existingSpace,
+  knownAreas = DEFAULT_AREAS,
 }) => {
   const [name, setName] = useState(existingSpace?.name || '');
-  const [branchArea, setBranchArea] = useState<'Ram Nagar' | 'Singanallur' | 'Koundampalayam' | 'Neelikonampalayam'>(
-    existingSpace?.branchArea || 'Ram Nagar'
-  );
+  const [areaChoice, setAreaChoice] = useState<string>(existingSpace?.branchArea || knownAreas[0] || 'Ram Nagar');
+  const [newArea, setNewArea] = useState('');
+  const isAddingArea = areaChoice === ADD_NEW_AREA;
+  const branchArea = isAddingArea ? newArea.trim() : areaChoice;
   const [address, setAddress] = useState(existingSpace?.address || '');
   const [pincode, setPincode] = useState(existingSpace?.pincode || '641009');
   const [phone, setPhone] = useState(existingSpace?.phone || '+91 98422 12345');
@@ -116,6 +122,10 @@ export const SpaceConfigModal: React.FC<SpaceConfigModalProps> = ({
     e.preventDefault();
     if (!name.trim()) {
       setErrorMsg('Please specify the space name');
+      return;
+    }
+    if (!branchArea) {
+      setErrorMsg('Please enter the new area name');
       return;
     }
     if (!address.trim()) {
@@ -331,15 +341,25 @@ export const SpaceConfigModal: React.FC<SpaceConfigModalProps> = ({
                   Coimbatore Area <span className="text-rose-600">*</span>
                 </label>
                 <select
-                  value={branchArea}
-                  onChange={(e) => setBranchArea(e.target.value as any)}
+                  value={areaChoice}
+                  onChange={(e) => setAreaChoice(e.target.value)}
                   className="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 font-bold focus:outline-none focus:border-sky-500 cursor-pointer"
                 >
-                  <option value="Ram Nagar">Ram Nagar (Gandhipuram / Central)</option>
-                  <option value="Singanallur">Singanallur (Trichy Road)</option>
-                  <option value="Koundampalayam">Koundampalayam (MTP Road)</option>
-                  <option value="Neelikonampalayam">Neelikonampalayam (Peelamedu Tech Corridor)</option>
+                  {Array.from(new Set([...knownAreas, ...(existingSpace?.branchArea ? [existingSpace.branchArea] : [])])).map((a) => (
+                    <option key={a} value={a}>{a}</option>
+                  ))}
+                  <option value={ADD_NEW_AREA}>+ Add new area…</option>
                 </select>
+                {isAddingArea && (
+                  <input
+                    type="text"
+                    autoFocus
+                    placeholder="Enter new Coimbatore area, e.g. Saravanampatti"
+                    value={newArea}
+                    onChange={(e) => setNewArea(e.target.value)}
+                    className="mt-2 w-full bg-white border border-sky-400 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-sky-500"
+                  />
+                )}
               </div>
 
               <div className="sm:col-span-2">

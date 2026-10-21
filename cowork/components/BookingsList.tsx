@@ -129,7 +129,7 @@ export const BookingsList: React.FC<BookingsListProps> = ({
               <span>Coimbatore Bookings & Client Reservations</span>
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              Showing {filteredBookings.length} of {bookings.length} reservations across Ram Nagar, Singanallur, Koundampalayam & Neelikonampalayam
+              Showing {filteredBookings.length} of {bookings.length} reservations across all Coimbatore hubs
             </p>
           </div>
 

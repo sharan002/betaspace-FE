@@ -46,6 +46,9 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const [companyName, setCompanyName] = useState(initialCompanyName);
   const [notes, setNotes] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'upi_gpay' | 'credit_card' | 'corporate_account' | 'pay_at_desk'>('upi_gpay');
+  // The calculated total is only a suggestion; the price can be adjusted before confirming.
+  const [priceInput, setPriceInput] = useState(String(totalPrice));
+  const finalPrice = Number(priceInput);
   const [errorMsg, setErrorMsg] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -64,6 +67,10 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     }
     if (!companyName.trim()) {
       setErrorMsg('Please specify the company or business name');
+      return;
+    }
+    if (priceInput.trim() === '' || !Number.isFinite(finalPrice) || finalPrice < 0) {
+      setErrorMsg('Please enter a valid price');
       return;
     }
 
@@ -89,7 +96,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       clientPhone: clientPhone.trim() || '+91 98422 00000',
       companyName: companyName.trim(),
       notes: notes.trim() || undefined,
-      totalPrice,
+      totalPrice: Math.round(finalPrice),
       status: 'confirmed',
       bookedAt: new Date().toISOString(),
       paymentMethod,
@@ -169,9 +176,30 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               <span className="text-slate-500 uppercase tracking-wider block text-[10px] font-bold">
                 Total Payable (INR)
               </span>
-              <div className="mt-1 font-mono text-lg font-bold text-sky-700">
-                {formatINR(totalPrice)}
+              <div className="mt-1 relative">
+                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 font-mono font-bold text-sky-700">₹</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={priceInput}
+                  onChange={(e) => {
+                    setPriceInput(e.target.value);
+                    if (errorMsg) setErrorMsg('');
+                  }}
+                  aria-label="Total payable (INR)"
+                  className="w-full bg-white border border-sky-300 rounded-lg pl-7 pr-2 py-1 font-mono text-base font-bold text-sky-700 focus:outline-none focus:border-sky-500"
+                />
               </div>
+              {finalPrice !== totalPrice && Number.isFinite(finalPrice) && (
+                <button
+                  type="button"
+                  onClick={() => setPriceInput(String(totalPrice))}
+                  className="mt-1 text-[10px] font-semibold text-slate-500 hover:text-sky-700 cursor-pointer"
+                >
+                  Reset to calculated {formatINR(totalPrice)}
+                </button>
+              )}
             </div>
           </div>
 

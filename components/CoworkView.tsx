@@ -3,7 +3,7 @@ import { Armchair, CalendarCheck, LayoutDashboard, Plus, Building2, Package, Loa
 import { apiService } from '../services/api';
 import { CoworkingSpace, Booking } from '../cowork/types';
 import { isSeatBooked } from '../cowork/utils/storage';
-import { getTodayDateString, TIME_SLOT_PRESETS, calculateDateDifferenceDays, INITIAL_SPACES } from '../cowork/data/initialData';
+import { getTodayDateString, TIME_SLOT_PRESETS, calculateDateDifferenceDays, INITIAL_SPACES, getKnownAreas } from '../cowork/data/initialData';
 import { SlotSelector } from '../cowork/components/SlotSelector';
 import { SeatMap } from '../cowork/components/SeatMap';
 import { BookingSummaryBar } from '../cowork/components/BookingSummaryBar';
@@ -370,6 +370,7 @@ const CoworkView: React.FC<CoworkViewProps> = ({ isAdmin }) => {
       {isSpaceConfigModalOpen && (
         <SpaceConfigModal
           existingSpace={editingSpace}
+          knownAreas={getKnownAreas(spaces)}
           onClose={() => { setIsSpaceConfigModalOpen(false); setEditingSpace(undefined); }}
           onSaveSpace={handleSaveSpace}
         />

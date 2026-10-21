@@ -8,6 +8,18 @@ export const TIME_SLOT_PRESETS: TimeSlotPreset[] = [
   { id: 'fullday', label: 'Full Day Access', startTime: '08:30', endTime: '20:30', hours: 12 },
 ];
 
+export const DEFAULT_AREAS = ['Ram Nagar', 'Singanallur', 'Koundampalayam', 'Neelikonampalayam'];
+
+// Default areas plus any area an admin has added to a space.
+export function getKnownAreas(spaces: Pick<CoworkingSpace, 'branchArea'>[]): string[] {
+  const areas = [...DEFAULT_AREAS];
+  spaces.forEach((s) => {
+    const a = (s.branchArea || '').trim();
+    if (a && !areas.some((x) => x.toLowerCase() === a.toLowerCase())) areas.push(a);
+  });
+  return areas;
+}
+
 export function getTodayDateString(): string {
   const d = new Date();
   const year = d.getFullYear();
